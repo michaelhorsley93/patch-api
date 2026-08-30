@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Patch admin</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--deep:#04222C;--deep-2:#083344;--aqua:#2ECFBB;--aqua-2:#1BA495;--sand:#E6D8BE;
+--paper:#F5F7F6;--surface:#FFF;--ink:#08191F;--ink-2:#42565C;--ink-3:#7B8D92;--line:#DFE5E4;--r:14px;--r-sm:9px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Manrope',system-ui,sans-serif;font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.big{font-family:'Sora',sans-serif;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+h1{font-size:27px}h2{font-size:21px}h3{font-size:17px}
+p{color:var(--ink-2)}
+a{color:var(--aqua-2)}
+:focus-visible{outline:2px solid var(--aqua);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+.topbar{background:var(--deep);color:#fff;padding:16px 0}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.05em;display:flex;align-items:center;gap:8px}
+.logo i{width:8px;height:8px;border-radius:50%;background:var(--aqua)}
+.topbar .sub{font-size:13.5px;color:rgba(255,255,255,.6)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--aqua);color:var(--deep);border:0;padding:12px 20px;border-radius:100px;font-family:'Manrope',sans-serif;font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;transition:.18s}
+.btn:hover{background:#43E0CB;transform:translateY(-1px)}
+.btn:disabled{background:#B7C6C4;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{background:var(--surface)}
+.btn-w{width:100%;padding:15px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:15px;color:var(--ink);background:var(--paper)}
+.field textarea{min-height:88px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{background:#fff;border-color:var(--aqua-2);outline:none;box-shadow:0 0 0 3px rgba(46,207,187,.15)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:5px 11px;border-radius:100px}
+.p-new{background:#E4F7F4;color:#12786C}
+.p-contacted{background:#E8EEF6;color:#3A5A85}
+.p-viewing{background:#FBF0DC;color:#8A6320}
+.p-offer{background:#F3E9FA;color:#6B3E93}
+.p-won{background:#E1F5E4;color:#2A6B36}
+.p-lost{background:#F1F1F1;color:#7A7A7A}
+.p-buyer{background:#E8EEF6;color:#3A5A85}
+.p-seller{background:#FBF0DC;color:#8A6320}
+.note{background:#EDFAF8;border:1px solid #C9EFE9;border-radius:var(--r-sm);padding:14px 16px;font-size:14px;color:#0D5F56;margin-bottom:18px}
+.warn{background:#FDF1E9;border:1px solid #F3D5C0;color:#9A4E20}
+.muted{color:var(--ink-3);font-size:13.5px}
+.empty{text-align:center;padding:60px 20px;color:var(--ink-3)}
+</style>
+<style>
+main{padding:26px 0 70px}
+.grid{display:grid;grid-template-columns:400px 1fr;gap:20px;align-items:start}
+@media(max-width:960px){.grid{grid-template-columns:1fr}}
+.sticky{position:sticky;top:20px}
+.agents{display:flex;flex-direction:column;gap:9px;margin-bottom:20px}
+.ag{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ag .nm{font-weight:700}
+.ag .sub{font-size:13px;color:var(--ink-3)}
+.prog{font-family:'Sora',sans-serif;font-weight:700;font-size:15px}
+.prog small{font-weight:400;color:var(--ink-3);font-size:12.5px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.on{background:#2FBF6B}.off{background:#E0A33C}
+.feed{display:flex;flex-direction:column;gap:9px}
+.fl{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px 16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px}
+.gate{max-width:400px;margin:80px auto;padding:0 20px}
+.ok{background:#E1F5E4;border:1px solid #B9E3C0;color:#2A6B36;border-radius:var(--r-sm);padding:13px 15px;font-size:14px;margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><i></i>Patch admin</div>
+    <span class="sub" id="count"></span>
+  </div>
+</div>
+
+<div class="gate" id="gate">
+  <div class="card">
+    <h2 style="margin-bottom:8px">Admin key</h2>
+    <p style="font-size:14.5px;margin-bottom:18px">Paste the ADMIN_KEY you set in Railway.</p>
+    <div class="field"><input id="key" type="password" autocomplete="off"></div>
+    <button class="btn btn-w" id="go">Open</button>
+    <p class="muted" id="gateMsg" style="margin-top:12px;text-align:center"></p>
+  </div>
+</div>
+
+<main id="app" hidden>
+  <div class="wrap grid">
+    <div class="sticky">
+      <div class="card">
+        <h2 style="margin-bottom:16px">Add a lead</h2>
+        <div id="msg"></div>
+        <div class="field">
+          <label for="agent">Deliver to</label>
+          <select id="agent"></select>
+        </div>
+        <div class="field">
+          <label for="lcom">Community</label>
+          <select id="lcom"></select>
+        </div>
+        <div class="row">
+          <div class="field"><label for="lname">Name</label><input id="lname" placeholder="Ahmed K"></div>
+          <div class="field"><label for="ltype">Type</label>
+            <select id="ltype"><option>Seller</option><option>Buyer</option></select></div>
+        </div>
+        <div class="field"><label for="lphone">Phone</label><input id="lphone" placeholder="+971 50 123 4567"></div>
+        <div class="field"><label for="lemail">Email (optional)</label><input id="lemail" type="email"></div>
+        <div class="field"><label for="lprop">Property or building</label><input id="lprop" placeholder="Springs 4, 3M type"></div>
+        <div class="row">
+          <div class="field"><label for="lbudget">Budget or price idea</label><input id="lbudget" placeholder="AED 4.2M"></div>
+          <div class="field"><label for="ltime">Timeline</label><input id="ltime" placeholder="Next 3 months"></div>
+        </div>
+        <div class="field"><label for="lnotes">What they said</label>
+          <textarea id="lnotes" placeholder="Wants to move to a bigger villa. Open to a valuation this week."></textarea></div>
+        <button class="btn btn-w" id="send">Save and send to Telegram</button>
+        <p class="muted" style="margin-top:11px;text-align:center">Sends instantly. The agent gets it on their phone.</p>
+      </div>
+    </div>
+
+    <div>
+      <h2 style="margin-bottom:14px">Agents</h2>
+      <div class="agents" id="agents"></div>
+      <h2 style="margin-bottom:14px">Recent leads</h2>
+      <div class="feed" id="feed"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = location.origin;
+let KEY = sessionStorage.getItem("patch_admin") || "";
+let AGENTS = [];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hdr = () => ({ "Content-Type":"application/json", "X-Admin-Key": KEY });
+
+async function boot(){
+  if(!KEY) return;
+  try{
+    const r = await fetch(API+"/admin/agents", { headers: hdr() });
+    if(!r.ok) throw 0;
+    AGENTS = await r.json();
+    sessionStorage.setItem("patch_admin", KEY);
+    $("gate").hidden = true; $("app").hidden = false;
+    drawAgents(); drawFeed();
+  }catch(e){
+    KEY = ""; sessionStorage.removeItem("patch_admin");
+    $("gateMsg").textContent = "That key was not accepted.";
+  }
+}
+
+function commsOf(a){ return String(a.community||"").split(/,\s*|\s+and\s+/).filter(Boolean); }
+function drawCommunities(){
+  const a = AGENTS.find(x => x.id === +$("agent").value) || AGENTS[0];
+  if(!a) return;
+  $("lcom").innerHTML = commsOf(a).map(c => '<option>'+esc(c)+'</option>').join("");
+}
+
+function drawAgents(){
+  $("count").textContent = AGENTS.length + " active " + (AGENTS.length === 1 ? "agent" : "agents");
+  $("agent").innerHTML = AGENTS.map(a =>
+    '<option value="'+a.id+'">'+esc(a.first_name+" "+a.last_name)+" · "+esc(a.community)
+    + (a.telegram_chat_id ? "" : " (no Telegram yet)") + "</option>").join("");
+  drawCommunities();
+
+  $("agents").innerHTML = AGENTS.length ? AGENTS.map(a => {
+    const target = (a.volume || "10 to 20").split(" to ")[0];
+    const cs = commsOf(a);
+    return '<div class="ag"><div>'
+      + '<div class="nm"><span class="dot '+(a.telegram_chat_id?"on":"off")+'"></span>'
+      + esc(a.first_name+" "+a.last_name)
+      + (cs.length>1 ? ' <span class="pill p-new">'+cs.length+' communities</span>' : "") + "</div>"
+      + '<div class="sub">'+esc(a.community)+" · "+esc(a.mix)+"</div></div>"
+      + '<div class="prog">'+a.this_month+" / "+target+"<br><small>this month</small></div></div>";
+  }).join("") : '<div class="card empty">No subscribers yet.</div>';
+}
+
+async function drawFeed(){
+  try{
+    const leads = await (await fetch(API+"/admin/leads", { headers: hdr() })).json();
+    $("feed").innerHTML = leads.length ? leads.slice(0,40).map(l => {
+      const d = new Date((l.created_at||"").replace(" ","T")+"Z");
+      return '<div class="fl"><div><b>'+esc(l.name)+"</b> · "+esc(l.type)+" · "+esc(l.community)
+        + '<div class="muted">to '+esc(l.first_name+" "+l.last_name)
+        + (isNaN(d) ? "" : " · "+d.toLocaleDateString("en-GB",{day:"numeric",month:"short"})
+        + " " + d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})) + "</div></div>"
+        + '<span class="pill '+(l.delivered ? "p-won" : "p-lost")+'">'
+        + (l.delivered ? "Delivered" : "Not sent") + "</span></div>";
+    }).join("") : '<div class="card empty">No leads logged yet.</div>';
+  }catch(e){}
+}
+
+$("agent").addEventListener("change", drawCommunities);
+
+$("go").addEventListener("click", () => { KEY = $("key").value.trim(); boot(); });
+$("key").addEventListener("keydown", e => { if(e.key === "Enter") $("go").click(); });
+
+$("send").addEventListener("click", async () => {
+  const body = {
+    agentId: +$("agent").value, name: $("lname").value.trim(), phone: $("lphone").value.trim(),
+    email: $("lemail").value.trim(), type: $("ltype").value, community: $("lcom").value,
+    property: $("lprop").value.trim(),
+    budget: $("lbudget").value.trim(), timeline: $("ltime").value.trim(), notes: $("lnotes").value.trim()
+  };
+  if(!body.name || !body.phone){ $("msg").innerHTML = '<div class="note warn">Name and phone are required.</div>'; return; }
+  $("send").disabled = true; $("send").textContent = "Sending";
+  try{
+    const r = await fetch(API+"/admin/leads", { method:"POST", headers: hdr(), body: JSON.stringify(body) });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || "failed");
+    $("msg").innerHTML = '<div class="'+(d.delivered ? "ok" : "note warn")+'">'+esc(d.note)+"</div>";
+    ["lname","lphone","lemail","lprop","lbudget","ltime","lnotes"].forEach(i => $(i).value = "");
+    boot();
+  }catch(e){
+    $("msg").innerHTML = '<div class="note warn">Could not save that lead. '+esc(e.message)+"</div>";
+  }
+  $("send").disabled = false; $("send").textContent = "Save and send to Telegram";
+});
+
+boot();
+</script>
+</body>
+</html>

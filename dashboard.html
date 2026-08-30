@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your leads · Patch</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--deep:#04222C;--deep-2:#083344;--aqua:#2ECFBB;--aqua-2:#1BA495;--sand:#E6D8BE;
+--paper:#F5F7F6;--surface:#FFF;--ink:#08191F;--ink-2:#42565C;--ink-3:#7B8D92;--line:#DFE5E4;--r:14px;--r-sm:9px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Manrope',system-ui,sans-serif;font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.big{font-family:'Sora',sans-serif;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+h1{font-size:27px}h2{font-size:21px}h3{font-size:17px}
+p{color:var(--ink-2)}
+a{color:var(--aqua-2)}
+:focus-visible{outline:2px solid var(--aqua);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+.topbar{background:var(--deep);color:#fff;padding:16px 0}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.05em;display:flex;align-items:center;gap:8px}
+.logo i{width:8px;height:8px;border-radius:50%;background:var(--aqua)}
+.topbar .sub{font-size:13.5px;color:rgba(255,255,255,.6)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--aqua);color:var(--deep);border:0;padding:12px 20px;border-radius:100px;font-family:'Manrope',sans-serif;font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;transition:.18s}
+.btn:hover{background:#43E0CB;transform:translateY(-1px)}
+.btn:disabled{background:#B7C6C4;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{background:var(--surface)}
+.btn-w{width:100%;padding:15px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:15px;color:var(--ink);background:var(--paper)}
+.field textarea{min-height:88px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{background:#fff;border-color:var(--aqua-2);outline:none;box-shadow:0 0 0 3px rgba(46,207,187,.15)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:5px 11px;border-radius:100px}
+.p-new{background:#E4F7F4;color:#12786C}
+.p-contacted{background:#E8EEF6;color:#3A5A85}
+.p-viewing{background:#FBF0DC;color:#8A6320}
+.p-offer{background:#F3E9FA;color:#6B3E93}
+.p-won{background:#E1F5E4;color:#2A6B36}
+.p-lost{background:#F1F1F1;color:#7A7A7A}
+.p-buyer{background:#E8EEF6;color:#3A5A85}
+.p-seller{background:#FBF0DC;color:#8A6320}
+.note{background:#EDFAF8;border:1px solid #C9EFE9;border-radius:var(--r-sm);padding:14px 16px;font-size:14px;color:#0D5F56;margin-bottom:18px}
+.warn{background:#FDF1E9;border:1px solid #F3D5C0;color:#9A4E20}
+.muted{color:var(--ink-3);font-size:13.5px}
+.empty{text-align:center;padding:60px 20px;color:var(--ink-3)}
+</style>
+<style>
+.hero{background:var(--deep);color:#fff;padding:26px 0 40px}
+.hero h1{font-size:clamp(24px,4vw,33px);margin-bottom:6px}
+.hero p{color:rgba(255,255,255,.62);font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:26px}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);padding:18px 20px}
+.stat .n{font-family:'Sora',sans-serif;font-size:27px;font-weight:700;letter-spacing:-.04em;display:block}
+.stat .l{font-size:12.5px;color:rgba(255,255,255,.55);margin-top:2px;display:block}
+main{padding:28px 0 70px;margin-top:-18px}
+.tgcard{background:linear-gradient(100deg,#0A3140,#04222C);color:#fff;border-radius:var(--r);padding:26px;margin-bottom:22px;display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center}
+@media(max-width:660px){.tgcard{grid-template-columns:1fr}}
+.tgcard h3{margin-bottom:7px}
+.tgcard p{color:rgba(255,255,255,.68);font-size:14.5px;max-width:520px}
+.tgbtn{background:#fff;color:var(--deep)}
+.tgbtn:hover{background:#E4F7F4}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.filters{display:flex;gap:5px;background:var(--surface);border:1px solid var(--line);padding:4px;border-radius:100px;flex-wrap:wrap}
+.filters button{border:0;background:transparent;padding:8px 14px;border-radius:100px;font-family:'Manrope',sans-serif;font-size:13.5px;font-weight:600;color:var(--ink-3);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.leads{display:flex;flex-direction:column;gap:11px}
+.lead{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px}
+.lead-t{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.lead h3{margin-bottom:4px}
+.lead .meta{font-size:13.5px;color:var(--ink-3)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.lead-b{margin-top:15px;padding-top:15px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.kv .k{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:2px}
+.kv .v{font-size:14.5px}
+.lead-f{margin-top:16px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.lead-f a{text-decoration:none}
+.lead-f select{padding:9px 12px;border:1px solid var(--line);border-radius:100px;font-family:'Manrope',sans-serif;font-size:13.5px;background:var(--paper);cursor:pointer}
+.gate{max-width:420px;margin:70px auto;padding:0 20px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><i></i>Patch</div>
+    <span class="sub" id="who"></span>
+  </div>
+</div>
+
+<!-- signed out -->
+<div class="gate" id="gate" hidden>
+  <div class="card">
+    <h2 style="margin-bottom:8px">Sign in</h2>
+    <p style="font-size:14.5px;margin-bottom:20px">Enter the email you subscribed with. We send your dashboard link straight to your Telegram.</p>
+    <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email"></div>
+    <button class="btn btn-w" id="sendLink">Send me my link</button>
+    <p class="muted" id="gateMsg" style="margin-top:14px;text-align:center"></p>
+  </div>
+</div>
+
+<!-- signed in -->
+<div id="app" hidden>
+  <div class="hero">
+    <div class="wrap">
+      <h1 id="hi"></h1>
+      <p id="plan"></p>
+      <div class="stats">
+        <div class="stat"><span class="n" id="sMonth">0</span><span class="l">Leads this month</span></div>
+        <div class="stat"><span class="n" id="sTotal">0</span><span class="l">Leads all time</span></div>
+        <div class="stat"><span class="n" id="sOpen">0</span><span class="l">Still open</span></div>
+        <div class="stat"><span class="n" id="sWon">0</span><span class="l">Marked won</span></div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <div class="tgcard" id="tgcard" hidden>
+        <div>
+          <h3>Connect Telegram to get leads on your phone</h3>
+          <p>One tap. Every lead lands in your Telegram the second it comes in, so you can call while they are still thinking about it. Until you connect, leads only appear here.</p>
+        </div>
+        <a class="btn tgbtn" id="tglink" target="_blank" rel="noopener">Connect Telegram</a>
+      </div>
+
+      <div class="bar">
+        <h2>Your leads</h2>
+        <div class="filters" id="filters">
+          <button data-f="all" aria-pressed="true">All</button>
+          <button data-f="new" aria-pressed="false">New</button>
+          <button data-f="open" aria-pressed="false">Open</button>
+          <button data-f="won" aria-pressed="false">Won</button>
+        </div>
+      </div>
+      <div class="leads" id="leads"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const API = location.origin;
+const OPEN = ["new","contacted","viewing","offer"];
+let TOKEN = location.hash.slice(1) || localStorage.getItem("patch_token") || "";
+let LEADS = [], AGENT = null, filter = "all", comFilter = "all";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+if (location.hash) { localStorage.setItem("patch_token", TOKEN); history.replaceState(null, "", location.pathname); }
+
+async function load(){
+  if(!TOKEN) return showGate();
+  try{
+    const r = await fetch(API+"/me", { headers:{ Authorization:"Bearer "+TOKEN } });
+    if(!r.ok) throw 0;
+    const d = await r.json();
+    AGENT = d.agent; LEADS = d.leads;
+    render();
+  }catch(e){ localStorage.removeItem("patch_token"); showGate(); }
+}
+
+function showGate(){ $("gate").hidden = false; $("app").hidden = true; }
+
+function render(){
+  $("gate").hidden = true; $("app").hidden = false;
+  const many = (AGENT.communities || []).length > 1;
+  $("who").textContent = AGENT.community;
+  $("hi").textContent = "Morning, " + AGENT.firstName + ".";
+  $("plan").textContent = AGENT.volume + " warm leads a month "
+    + (many ? "across " : "in ") + AGENT.community
+    + " · " + AGENT.mix + " · AED " + Number(AGENT.priceAED).toLocaleString("en-AE") + " a month";
+
+  const month = new Date().toISOString().slice(0,7);
+  $("sMonth").textContent = LEADS.filter(l => (l.created_at||"").startsWith(month)).length;
+  $("sTotal").textContent = LEADS.length;
+  $("sOpen").textContent  = LEADS.filter(l => OPEN.includes(l.status)).length;
+  $("sWon").textContent   = LEADS.filter(l => l.status === "won").length;
+
+  if(many){
+    const cs = AGENT.communities;
+    $("filters").dataset.multi = "1";
+    if(!document.getElementById("comFilter")){
+      const d = document.createElement("div");
+      d.className = "filters"; d.id = "comFilter";
+      d.innerHTML = '<button data-c="all" aria-pressed="true">All communities</button>'
+        + cs.map(c => '<button data-c="'+esc(c)+'" aria-pressed="false">'+esc(c)+"</button>").join("");
+      document.querySelector(".bar").appendChild(d);
+      d.addEventListener("click", e => {
+        const b = e.target.closest("button[data-c]"); if(!b) return;
+        comFilter = b.dataset.c;
+        d.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x===b));
+        drawLeads();
+      });
+    }
+  }
+
+  if(!AGENT.telegramConnected && AGENT.telegramLink){
+    $("tgcard").hidden = false; $("tglink").href = AGENT.telegramLink;
+  } else $("tgcard").hidden = true;
+
+  drawLeads();
+}
+
+function drawLeads(){
+  const list = LEADS
+    .filter(l => comFilter === "all" || l.community === comFilter)
+    .filter(l =>
+      filter === "all" ? true :
+      filter === "open" ? OPEN.includes(l.status) : l.status === filter);
+
+  if(!list.length){
+    $("leads").innerHTML = '<div class="card empty">'
+      + (LEADS.length ? "Nothing in this filter." : "No leads yet. Your first ones are on the way.")
+      + "</div>";
+    return;
+  }
+
+  $("leads").innerHTML = list.map(l => {
+    const d = new Date((l.created_at||"").replace(" ","T")+"Z");
+    const when = isNaN(d) ? "" : d.toLocaleDateString("en-GB",{day:"numeric",month:"short"})
+      + " at " + d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+    const kv = [["Property",l.property],["Budget",l.budget],["Timeline",l.timeline],["What they said",l.notes]]
+      .filter(([,v]) => v)
+      .map(([k,v]) => '<div class="kv"><span class="k">'+k+'</span><span class="v">'+esc(v)+"</span></div>").join("");
+    const tel = String(l.phone||"").replace(/[^\d+]/g,"");
+    return '<div class="lead">'
+      + '<div class="lead-t"><div><h3>'+esc(l.name)+"</h3>"
+      + '<span class="meta">'+esc(l.community)+" · "+when+"</span></div>"
+      + '<div class="tags"><span class="pill p-'+esc((l.type||"").toLowerCase())+'">'+esc(l.type)+"</span>"
+      + '<span class="pill p-'+esc(l.status)+'">'+esc(l.status)+"</span></div></div>"
+      + (kv ? '<div class="lead-b">'+kv+"</div>" : "")
+      + '<div class="lead-f">'
+      + '<a class="btn" href="tel:'+tel+'">Call '+esc(l.phone)+"</a>"
+      + '<a class="btn btn-ghost" href="https://wa.me/'+tel.replace(/\D/g,"")+'" target="_blank" rel="noopener">WhatsApp</a>'
+      + '<select data-id="'+l.id+'">'
+      + ["new","contacted","viewing","offer","won","lost"].map(s =>
+          '<option value="'+s+'"'+(s===l.status?" selected":"")+">"+s+"</option>").join("")
+      + "</select></div></div>";
+  }).join("");
+}
+
+$("leads").addEventListener("change", async e => {
+  const sel = e.target.closest("select[data-id]"); if(!sel) return;
+  const id = +sel.dataset.id, status = sel.value;
+  const lead = LEADS.find(l => l.id === id); const was = lead.status;
+  lead.status = status; render();
+  try{
+    const r = await fetch(API+"/leads/"+id, { method:"PATCH",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+TOKEN },
+      body: JSON.stringify({ status }) });
+    if(!r.ok) throw 0;
+  }catch(e){ lead.status = was; render(); alert("Could not save that. Try again."); }
+});
+
+$("filters").addEventListener("click", e => {
+  const b = e.target.closest("button[data-f]"); if(!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll("#filters button").forEach(x => x.setAttribute("aria-pressed", x===b));
+  drawLeads();
+});
+
+$("sendLink").addEventListener("click", async () => {
+  const email = $("em").value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return $("gateMsg").textContent = "That email does not look right.";
+  $("sendLink").disabled = true;
+  try{
+    await fetch(API+"/auth/request", { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ email }) });
+  }catch(e){}
+  $("gateMsg").textContent = "If that email is on a subscription, your link is on its way to Telegram.";
+  $("sendLink").disabled = false;
+});
+
+load();
+</script>
+</body>
+</html>

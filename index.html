@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patch — your prospecting desk in Dubai and Abu Dhabi</title>
+<meta name="description" content="Warm buyer and seller leads in the community you work. We run the phones. You close. From AED 4,000 a month.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+:root{
+  --deep:#04222C;
+  --deep-2:#083344;
+  --deep-3:#0C4254;
+  --aqua:#2ECFBB;
+  --aqua-2:#1BA495;
+  --sand:#E6D8BE;
+  --paper:#F5F7F6;
+  --surface:#FFFFFF;
+  --ink:#08191F;
+  --ink-2:#42565C;
+  --ink-3:#7B8D92;
+  --line:#DFE5E4;
+  --line-dk:rgba(255,255,255,.14);
+  --r:14px;
+  --r-sm:9px;
+  --pad:clamp(20px,5vw,60px);
+  --max:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:86px}
+body{background:var(--paper);color:var(--ink);font-family:'Manrope',system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--pad)}
+h1,h2,h3,.num{font-family:'Sora',sans-serif;font-weight:700;letter-spacing:-.035em;line-height:1.04}
+h1{font-size:clamp(34px,5vw,58px);font-weight:800}
+h2{font-size:clamp(28px,4.2vw,46px);font-weight:700}
+h3{font-size:20px;letter-spacing:-.02em;line-height:1.25}
+p{color:var(--ink-2)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--aqua);outline-offset:3px;border-radius:4px}
+.eyebrow{font-size:12.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.dark .eyebrow{color:var(--sand)}
+
+/* ── header ── */
+header{position:fixed;top:0;left:0;right:0;z-index:80;transition:background .3s,box-shadow .3s,border-color .3s;border-bottom:1px solid transparent}
+header.solid{background:rgba(4,34,44,.82);backdrop-filter:blur(16px);border-color:rgba(255,255,255,.1)}
+.hd{display:flex;align-items:center;justify-content:space-between;height:70px}
+.logo{font-family:'Sora',sans-serif;font-weight:800;font-size:21px;letter-spacing:-.05em;color:#fff;transition:color .3s;display:flex;align-items:center;gap:8px}
+
+.logo i{width:9px;height:9px;border-radius:50%;background:var(--aqua);display:block;font-style:normal}
+.hd-r{display:flex;align-items:center;gap:16px}
+.hd-p{font-size:13.5px;font-weight:500;color:rgba(255,255,255,.66);transition:color .3s}
+
+@media(max-width:640px){.hd-p{display:none}}
+
+/* ── buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:var(--aqua);color:#04222C;border:0;padding:14px 24px;border-radius:100px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,background .2s;white-space:nowrap}
+.btn:hover{background:#43E0CB;transform:translateY(-2px);box-shadow:0 10px 26px rgba(46,207,187,.3)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{background:#B7C6C4;color:#5A6B69;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-sm{padding:10px 19px;font-size:14px}
+.btn-lg{padding:18px 30px;font-size:16.5px;width:100%}
+.btn-dark{background:var(--deep);color:#fff}
+.btn-dark:hover{background:var(--deep-2);box-shadow:0 10px 26px rgba(4,34,44,.25)}
+
+/* ── hero ── */
+.hero{position:relative;background:var(--deep);color:#fff;padding:calc(70px + clamp(46px,7vw,86px)) 0 clamp(52px,7vw,92px);overflow:hidden;isolation:isolate}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:
+  radial-gradient(120% 80% at 78% 8%, rgba(46,207,187,.20) 0%, transparent 55%),
+  radial-gradient(100% 70% at 8% 100%, rgba(230,216,190,.10) 0%, transparent 60%)}
+#plan{position:absolute;inset:-8% -6%;z-index:-2;opacity:.5;animation:drift 46s linear infinite}
+@keyframes drift{0%{transform:translate(0,0) scale(1.02)}50%{transform:translate(-2.4%,-1.6%) scale(1.06)}100%{transform:translate(0,0) scale(1.02)}}
+.hero p{color:rgba(255,255,255,.72)}
+.hero h1{max-width:19ch}
+.hero h1 em{font-style:normal;color:var(--aqua);position:relative;white-space:nowrap}
+#patchName{transition:opacity .18s ease}
+.hero-sub{font-size:clamp(16.5px,1.9vw,19.5px);max-width:540px;margin-top:20px}
+.hero-eb{display:flex;align-items:flex-start;gap:9px;margin-bottom:24px}
+.hero-eb .pip{margin-top:7px;flex:none}
+.pip{width:7px;height:7px;border-radius:50%;background:var(--aqua);box-shadow:0 0 0 0 rgba(46,207,187,.6);animation:pip 2.6s ease-out infinite}
+@keyframes pip{0%{box-shadow:0 0 0 0 rgba(46,207,187,.55)}70%{box-shadow:0 0 0 11px rgba(46,207,187,0)}100%{box-shadow:0 0 0 0 rgba(46,207,187,0)}}
+
+/* ── picker card ── */
+.picker{margin-top:38px;background:rgba(255,255,255,.055);border:1px solid var(--line-dk);border-radius:var(--r);backdrop-filter:blur(18px);box-shadow:0 28px 60px rgba(0,0,0,.28);overflow:hidden;max-width:820px}
+.pk-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line-dk);flex-wrap:wrap}
+.tabs{display:flex;gap:5px;background:rgba(0,0,0,.2);padding:4px;border-radius:100px}
+.tab{font-size:13.5px;font-weight:600;padding:8px 17px;border:0;border-radius:100px;background:transparent;color:rgba(255,255,255,.6);cursor:pointer;font-family:'Manrope',sans-serif;transition:.2s}
+.tab[aria-selected="true"]{background:var(--aqua);color:var(--deep)}
+.search{border:1px solid var(--line-dk);border-radius:100px;padding:10px 16px;font-family:'Manrope',sans-serif;font-size:14px;width:210px;background:rgba(0,0,0,.2);color:#fff}
+.search::placeholder{color:rgba(255,255,255,.4)}
+.search:focus{outline:none;border-color:var(--aqua)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:18px;max-height:212px;overflow-y:auto;scrollbar-width:thin}
+.chips::-webkit-scrollbar{width:5px}
+.chips::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:9px}
+.chip{font-size:13.5px;font-weight:500;padding:8px 15px;border:1px solid var(--line-dk);background:rgba(255,255,255,.04);border-radius:100px;cursor:pointer;color:rgba(255,255,255,.8);font-family:'Manrope',sans-serif;transition:.18s}
+.chip:hover{background:rgba(255,255,255,.11);color:#fff;transform:translateY(-1px)}
+.chip[aria-pressed="true"]{background:var(--aqua);border-color:var(--aqua);color:var(--deep);font-weight:700}
+.pk-hint{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:11px 18px;border-top:1px solid var(--line-dk);font-size:13px;color:rgba(255,255,255,.6);flex-wrap:wrap}
+.pk-hint b{color:var(--aqua);font-weight:700;white-space:nowrap}
+.pk-ft{border-top:1px solid var(--line-dk);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;background:rgba(0,0,0,.14)}
+.mixlab{font-size:11.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:8px}
+.mix{display:flex;gap:5px;background:rgba(0,0,0,.24);padding:4px;border-radius:100px}
+.mix button{font-size:13.5px;font-weight:600;padding:8px 15px;border:0;background:transparent;border-radius:100px;cursor:pointer;color:rgba(255,255,255,.6);font-family:'Manrope',sans-serif;transition:.2s}
+.mix button[aria-pressed="true"]{background:#fff;color:var(--deep)}
+.empty{font-size:13.5px;color:rgba(255,255,255,.5);padding:6px 2px}
+.hero-facts{display:flex;gap:clamp(20px,4vw,46px);margin-top:34px;flex-wrap:wrap}
+.fact .n{font-family:'Sora',sans-serif;font-size:clamp(24px,3vw,32px);font-weight:700;letter-spacing:-.04em;display:block;color:#fff}
+.fact .l{font-size:12.5px;color:rgba(255,255,255,.5);font-weight:500}
+
+/* ── sections ── */
+section{padding:clamp(54px,6.4vw,88px) 0}
+.dark{background:var(--deep);color:#fff}
+.dark h2,.dark h3{color:#fff}
+.dark p{color:rgba(255,255,255,.68)}
+.sec-hd{max-width:660px;margin-bottom:clamp(34px,4vw,52px)}
+.sec-hd .eyebrow{display:block;margin-bottom:16px}
+.sec-hd p{margin-top:16px;font-size:17.5px}
+.lead{font-size:19px;color:var(--ink-2)}
+
+/* ── hire cards ── */
+.hire{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:880px){.hire{grid-template-columns:1fr}}
+.hcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:28px 26px;transition:transform .25s,box-shadow .25s}
+.hcard:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(8,25,31,.07)}
+.hicon{width:42px;height:42px;border-radius:11px;background:#E4F7F4;display:flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--aqua-2)}
+.hcard h3{margin-bottom:9px}
+.hcard p{font-size:14.5px}
+
+/* ── cost bars ── */
+.bars{display:flex;flex-direction:column;gap:16px;margin-top:8px}
+.bar{background:rgba(255,255,255,.045);border:1px solid var(--line-dk);border-radius:var(--r);padding:22px 24px}
+.bar.win{background:linear-gradient(100deg,rgba(46,207,187,.15),rgba(46,207,187,.05));border-color:rgba(46,207,187,.42)}
+.bar-t{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.bar-t h3{font-size:17.5px}
+.bar-c{font-family:'Sora',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.03em;white-space:nowrap;color:#fff}
+.bar.win .bar-c{color:var(--aqua)}
+.bar-c small{display:block;font-family:'Manrope',sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.42);margin-top:3px;text-align:right}
+.track{height:9px;background:rgba(255,255,255,.07);border-radius:100px;margin:18px 0 14px;overflow:hidden}
+.fill{display:block;height:100%;border-radius:100px;background:linear-gradient(90deg,rgba(230,216,190,.28),rgba(230,216,190,.6));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.bar.win .fill{background:linear-gradient(90deg,var(--aqua-2),var(--aqua))}
+.bar p{font-size:14.5px;max-width:720px}
+
+/* ── scale ── */
+.scale-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:880px){.scale-grid{grid-template-columns:1fr}}
+.tier{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:26px 24px;cursor:pointer;text-align:left;font-family:'Manrope',sans-serif;transition:.22s;position:relative}
+.tier:hover{border-color:var(--ink-3);transform:translateY(-2px)}
+.tier[aria-pressed="true"]{border-color:var(--aqua-2);background:#F1FCFA;box-shadow:0 0 0 2px rgba(46,207,187,.28)}
+.tier .role{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--aqua-2);margin-bottom:12px}
+.tier .vol{font-family:'Sora',sans-serif;font-size:32px;font-weight:700;letter-spacing:-.04em;line-height:1;display:block}
+.tier .vl{font-size:13.5px;color:var(--ink-3);font-weight:500;margin-top:5px;display:block}
+.tier .cost{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);font-size:15.5px;font-weight:700;color:var(--ink)}
+.tier .cost span{font-weight:500;color:var(--ink-3);font-size:13.5px}
+.tier[aria-pressed="true"] .cost{border-color:#C9EFE9}
+
+/* ── checkout ── */
+.co-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(26px,4vw,58px);align-items:start}
+@media(max-width:940px){.co-grid{grid-template-columns:1fr}}
+.incl{list-style:none;margin-top:26px;display:flex;flex-direction:column;gap:13px}
+.incl li{font-size:15px;color:rgba(255,255,255,.78);padding-left:29px;position:relative}
+.incl li::before{content:"";position:absolute;left:0;top:7px;width:17px;height:17px;border-radius:50%;background:rgba(46,207,187,.18);box-shadow:inset 0 0 0 1px rgba(46,207,187,.45)}
+.incl li::after{content:"";position:absolute;left:5.5px;top:11px;width:5px;height:8px;border:solid var(--aqua);border-width:0 2px 2px 0;transform:rotate(42deg)}
+.tag{display:flex;align-items:baseline;gap:11px;margin:26px 0 6px;flex-wrap:wrap}
+.tag .amt{font-family:'Sora',sans-serif;font-size:clamp(42px,6.4vw,60px);font-weight:800;letter-spacing:-.045em;line-height:1;color:#fff}
+.tag .per{font-size:14px;color:rgba(255,255,255,.5);font-weight:500}
+.card{background:var(--surface);border-radius:var(--r);padding:clamp(24px,3.2vw,36px);box-shadow:0 26px 60px rgba(0,0,0,.22)}
+.card h3{color:var(--ink)!important;margin-bottom:4px}
+.card .hint{color:var(--ink-3)!important;font-size:14px;margin-bottom:22px}
+.recap{background:#EDFAF8;border:1px solid #C9EFE9;border-radius:var(--r-sm);padding:15px 17px;font-size:14.5px;color:#0D5F56;margin-bottom:22px;line-height:1.5}
+.recap b{font-weight:700}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px}
+.field input{width:100%;padding:14px 15px;border:1px solid var(--line);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:15.5px;color:var(--ink);background:var(--paper);transition:.18s}
+.field input:focus{background:#fff;border-color:var(--aqua-2);outline:none;box-shadow:0 0 0 3px rgba(46,207,187,.16)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.err{color:#C0532B;font-size:14px;margin-top:12px;display:none;font-weight:500}
+.fine{font-size:12.5px;color:var(--ink-3)!important;margin-top:15px;text-align:center}
+
+/* ── two col get/not ── */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:880px){.two{grid-template-columns:1fr}}
+.col{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:30px 28px}
+.col.is-not{background:transparent}
+.col h3{margin-bottom:20px}
+.col ul{list-style:none;display:flex;flex-direction:column;gap:13px}
+.col li{font-size:15px;color:var(--ink-2);padding-left:26px;position:relative}
+.col li::before{content:"";position:absolute;left:0;top:9px;width:8px;height:8px;border-radius:50%;background:var(--aqua)}
+.col.is-not li::before{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-3);opacity:.5}
+
+/* ── soon ── */
+.soon{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(28px,4vw,44px);display:grid;grid-template-columns:1fr auto;gap:36px;align-items:center}
+@media(max-width:820px){.soon{grid-template-columns:1fr}}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;background:#E4F7F4;color:var(--aqua-2);padding:6px 13px;border-radius:100px;margin-bottom:18px}
+.soon h3{font-size:25px;margin-bottom:12px}
+.soon p{font-size:15.5px;max-width:520px}
+.phone{width:236px;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:16px}
+.bub{font-size:13px;padding:10px 13px;border-radius:14px;margin-bottom:8px;line-height:1.45}
+.bub.them{background:#fff;border:1px solid var(--line);color:var(--ink-2);border-bottom-left-radius:4px}
+.bub.me{background:var(--aqua-2);color:#fff;border-bottom-right-radius:4px;margin-left:26px}
+
+/* ── faq ── */
+details{border-bottom:1px solid var(--line)}
+details:first-of-type{border-top:1px solid var(--line)}
+summary{padding:22px 0;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:22px;font-weight:700;font-size:17px;letter-spacing:-.015em}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";flex:none;width:11px;height:11px;border-right:2px solid var(--aqua-2);border-bottom:2px solid var(--aqua-2);transform:rotate(45deg);transition:transform .25s;margin-top:-5px}
+details[open] summary::after{transform:rotate(-135deg);margin-top:3px}
+details p{padding:0 0 24px;font-size:15.5px;max-width:780px}
+
+/* ── footer ── */
+footer{background:var(--deep);color:rgba(255,255,255,.5);padding:38px 0;font-size:14px}
+.ft{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ft a{color:var(--aqua);text-decoration:none}
+
+/* ── whatsapp ── */
+.wa{position:fixed;right:20px;bottom:20px;z-index:90;display:flex;align-items:center;gap:10px;background:#fff;color:var(--deep);padding:13px 20px;border-radius:100px;text-decoration:none;font-size:14.5px;font-weight:700;box-shadow:0 8px 30px rgba(4,34,44,.24);transition:.2s}
+.wa:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(4,34,44,.3)}
+.wa svg{color:#25D366}
+@media(max-width:560px){.wa span{display:none}.wa{padding:15px;right:16px;bottom:16px}}
+
+/* ── checkout sheet ── */
+.sheet{position:fixed;inset:0;z-index:200;visibility:hidden}
+.sheet.open{visibility:visible}
+.sheet-bg{position:absolute;inset:0;background:rgba(4,20,26,.62);backdrop-filter:blur(5px);opacity:0;transition:opacity .28s}
+.sheet.open .sheet-bg{opacity:1}
+.sheet-panel{position:absolute;top:0;right:0;height:100%;width:min(540px,100%);background:var(--paper);box-shadow:-20px 0 70px rgba(0,0,0,.3);overflow-y:auto;transform:translateX(100%);transition:transform .34s cubic-bezier(.2,.85,.25,1);display:flex;flex-direction:column}
+.sheet.open .sheet-panel{transform:none}
+.sheet-hd{position:sticky;top:0;z-index:2;background:var(--deep);color:#fff;padding:20px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.sheet-hd h3{font-size:19px;margin-bottom:5px}
+.sheet-hd p{font-size:13.5px;color:rgba(255,255,255,.66);max-width:340px}
+.x{background:rgba(255,255,255,.1);border:0;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:19px;line-height:1;flex:none;transition:.2s}
+.x:hover{background:rgba(255,255,255,.22)}
+.sheet-body{padding:20px 24px 40px;flex:1}
+.sheet-load{display:flex;flex-direction:column;align-items:center;gap:14px;padding:70px 0;color:var(--ink-3);font-size:14.5px}
+.spin{width:28px;height:28px;border:2.5px solid var(--line);border-top-color:var(--aqua-2);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.done{text-align:center;padding:52px 8px}
+.done .ring{width:66px;height:66px;border-radius:50%;background:#E4F7F4;display:flex;align-items:center;justify-content:center;margin:0 auto 22px;color:var(--aqua-2)}
+.done h3{font-size:25px;margin-bottom:12px}
+.done p{font-size:15.5px;margin-bottom:26px}
+.next{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin-bottom:24px}
+.next ol{margin:0;padding-left:19px;display:flex;flex-direction:column;gap:11px}
+.next li{font-size:14.5px;color:var(--ink-2)}
+.done .btn-ghost{background:var(--surface);color:var(--ink)}
+.done .btn-ghost:hover{background:#fff}
+.trustline{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;color:var(--ink-3);margin-top:18px}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <div class="wrap hd">
+    <div class="logo"><i></i>Patch</div>
+    <div class="hd-r">
+      <span class="hd-p" id="hdPrice"></span>
+      <a href="#start" class="btn btn-sm">Claim your community</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <svg id="plan" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+  <div class="wrap">
+    <div class="hero-eb"><span class="pip"></span><span class="eyebrow">Dubai and Abu Dhabi · Resale and leasing</span></div>
+    <h1><span id="heroVol">10 to 20</span> warm buyer and seller leads in <em id="patchName">your community</em>, every month.</h1>
+    <p class="hero-sub">We run the phones on your patch. You get handed people who have already said they want to move.</p>
+
+    <div class="picker">
+      <div class="pk-hd">
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" aria-selected="true" data-city="dubai">Dubai</button>
+          <button class="tab" role="tab" aria-selected="false" data-city="abudhabi">Abu Dhabi</button>
+        </div>
+        <input class="search" id="search" type="search" placeholder="Search communities" aria-label="Search communities">
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="pk-hint"><span id="pickHint">Pick the community you work. Add up to three.</span><b id="pickCount"></b></div>
+      <div class="pk-ft">
+        <div>
+          <div class="mixlab">I mostly want</div>
+          <div class="mix" role="group" aria-label="Lead mix">
+            <button data-mix="Mostly sellers" aria-pressed="false">Sellers</button>
+            <button data-mix="Mostly buyers" aria-pressed="false">Buyers</button>
+            <button data-mix="An even split" aria-pressed="true">Even split</button>
+          </div>
+        </div>
+        <a href="#start" class="btn">Continue</a>
+      </div>
+    </div>
+
+    <div class="hero-facts">
+      <div class="fact"><span class="n" id="factVol">10 to 20</span><span class="l">Warm leads a month</span></div>
+      <div class="fact"><span class="n">1</span><span class="l">Agent per community</span></div>
+      <div class="fact"><span class="n" id="factPrice"></span><span class="l">Per month, cancel anytime</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- HIRE FRAME -->
+<section>
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="eyebrow">What you are actually buying</span>
+      <h2>A prospecting desk, not a lead list.</h2>
+      <p>Think of it as headcount you do not have to hire, visa, seat, train or manage. A team that has done this for years, working one community, yours.</p>
+    </div>
+    <div class="hire">
+      <div class="hcard reveal">
+        <div class="hicon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>No salary, no visa, no desk</h3>
+        <p>No probation, no annual leave, no recruiting again in month four when they quit. You switch it on and off from your phone.</p>
+      </div>
+      <div class="hcard reveal">
+        <div class="hicon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2 4 6v6c0 5 3.4 9.1 8 10 4.6-.9 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <h3>Experienced, not entry level</h3>
+        <p>Four thousand dirhams of salary in this market buys someone with no track record. Here it buys a team that has been working these communities for years.</p>
+      </div>
+      <div class="hcard reveal">
+        <div class="hicon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></div>
+        <h3>Add communities, not headcount</h3>
+        <p>Cover a second or third community whenever you want, at a lower rate per lead, without a single conversation about salaries or office space.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COST BARS -->
+<section class="dark">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="eyebrow">What this replaces</span>
+      <h2>You are already paying for leads. Usually in the wrong currency.</h2>
+      <p>Every agent in Dubai is trying something. Here is what the alternatives cost, and what they actually return.</p>
+    </div>
+    <div class="bars" id="bars">
+      <div class="bar reveal" data-fill="88">
+        <div class="bar-t">
+          <h3>Hiring your own prospector</h3>
+          <div class="bar-c">AED 8,000 to 12,000<small>all in, per month</small></div>
+        </div>
+        <div class="track"><span class="fill"></span></div>
+        <p>Salary, visa, seat, software and the hours you spend training and managing them. At the bottom of that range you are hiring someone with no track record, and you carry the loss when they leave.</p>
+      </div>
+      <div class="bar reveal" data-fill="67">
+        <div class="bar-t">
+          <h3>A social media agency or an influencer on retainer</h3>
+          <div class="bar-c">AED 8,000<small>per month, no floor</small></div>
+        </div>
+        <div class="track"><span class="fill"></span></div>
+        <p>Builds an audience over six to twelve months and returns nothing in month one. It works for agents who enjoy being on camera and stay consistent for a year, and it is the wrong tool entirely if you would rather not build a personal brand.</p>
+      </div>
+      <div class="bar reveal" data-fill="42">
+        <div class="bar-t">
+          <h3>Your own cold calling</h3>
+          <div class="bar-c">70+ hours<small>a month of your time</small></div>
+        </div>
+        <div class="track"><span class="fill"></span></div>
+        <p>Three or four hours a day to find the handful of people who are actually thinking about moving. The most valuable work you do, and the only work you do for free.</p>
+      </div>
+      <div class="bar win reveal" data-fill="33">
+        <div class="bar-t">
+          <h3>Your own community on Patch</h3>
+          <div class="bar-c" id="barOurs">AED 4,000<small>per month, 10 to 20 leads</small></div>
+        </div>
+        <div class="track"><span class="fill"></span></div>
+        <p>Named people in your community who have already had the conversation. Comparable volume to a year of social media, at half the monthly cost, starting in week one. It also runs happily alongside whatever you are already doing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCALE -->
+<section>
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="eyebrow">Build your team</span>
+      <h2>Work one community, or all three.</h2>
+      <p>Cover a second or third community and the rate per lead drops. Pick them in the selector at the top and the price follows.</p>
+    </div>
+    <div class="scale-grid" id="tiers"></div>
+  </div>
+</section>
+
+<!-- CHECKOUT -->
+<section class="dark" id="start">
+  <div class="wrap">
+    <div class="co-grid">
+      <div class="reveal">
+        <span class="eyebrow">One community, one agent</span>
+        <h2 style="margin-top:16px">Start this month.</h2>
+        <div class="tag"><span class="amt" id="priceBig"></span><span class="per" id="priceSub"></span></div>
+        <p id="perLead" style="font-size:15.5px"></p>
+        <ul class="incl">
+          <li id="inclVol">Between 10 and 20 warm buyer or seller leads a month</li>
+          <li>Your choice of buyer heavy, seller heavy or even</li>
+          <li>Delivered to your Telegram the moment each one comes in</li>
+          <li id="inclCom">One agent per community while you are subscribed</li>
+          <li>Any shortfall carries into the next month at no charge</li>
+          <li>No contract, no setup fee, cancel anytime</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3>Claim your community</h3>
+        <p class="hint">Takes a minute. Payment handled securely by Stripe.</p>
+        <div class="recap" id="recap">Pick a community above to get started.</div>
+        <div class="row">
+          <div class="field"><label for="fname">First name</label><input id="fname" autocomplete="given-name"></div>
+          <div class="field"><label for="lname">Last name</label><input id="lname" autocomplete="family-name"></div>
+        </div>
+        <div class="field"><label for="email">Work email</label><input id="email" type="email" autocomplete="email"></div>
+        <div class="field"><label for="phone">Mobile number</label><input id="phone" type="tel" placeholder="+971" autocomplete="tel"></div>
+        <button class="btn btn-lg" id="submitBtn">Continue to payment</button>
+        <div class="err" id="err"></div>
+        <p class="fine">Charged after checkout. Cancel anytime.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GET / NOT -->
+<section>
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="eyebrow">Read this before you subscribe</span>
+      <h2>What a lead is, and what it is not.</h2>
+      <p>Every agent has been burned by a lead vendor. Here is the honest version.</p>
+    </div>
+    <div class="two">
+      <div class="col reveal">
+        <h3>What you get</h3>
+        <ul>
+          <li>A named person in your community who has said they are open to buying or selling</li>
+          <li>Their number, the property or building, and the notes from our conversation</li>
+          <li>Context on timing, other agents they have spoken to, and what prompted the call</li>
+          <li>Between 10 and 20 of these a month, agreed with you before you subscribe</li>
+          <li>A dashboard holding every lead you have been sent, and where each one stands</li>
+          <li>The hours back that you currently spend dialling strangers</li>
+        </ul>
+      </div>
+      <div class="col is-not reveal">
+        <h3>What you do not get</h3>
+        <ul>
+          <li>A signed listing agreement. You still have to win the instruction</li>
+          <li>Off plan enquiries. We work established communities only</li>
+          <li>Anyone ready to sign today. Warm means warm, not closed</li>
+          <li>Exclusivity for life. Your seat holds while your subscription is active</li>
+          <li>A replacement for being good at your job</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOON -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="soon reveal">
+      <div>
+        <span class="badge">Coming soon</span>
+        <h3>The assistant that works your pipeline while you sleep</h3>
+        <p>Today we hand you the lead and you take it from there. Next, an assistant on your own number that follows up every lead, answers the obvious questions, keeps them warm for months and pings you the moment someone is ready to meet. Subscribers get first access and founding pricing.</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="bub them">Still thinking about selling, but not this year</div>
+        <div class="bub me">Understood. Want me to send you what Springs 4 villas actually closed at each quarter, so you can decide on numbers rather than guesswork?</div>
+        <div class="bub them">Yes please</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="eyebrow">Questions</span>
+      <h2>The things agents ask us first.</h2>
+    </div>
+    <details open><summary>Where do the leads actually come from?</summary><p>A team working the phones inside your community every day. Owners, tenants and past enquiries. Every lead is someone who has had a real conversation with a real person and said they are open to buying or selling. Nothing is scraped, bought from a list, or generated by a form fill.</p></details>
+    <details><summary>Is the lead exclusive to me?</summary><p>Yes. One agent per community, and while your subscription is active nobody else gets leads from your patch. If your community is already taken you go on the waitlist and we tell you where you sit.</p></details>
+    <details><summary>How many leads exactly, and what if you fall short?</summary><p>Between 10 and 20 a month, and we agree your number with you before you subscribe rather than promising every community the same figure. If we land under it, the shortfall carries into the next month on top of your normal volume. Fall two short and you get two extra, at no cost. If we still cannot deliver, we refund you pro rata. We do not keep money for leads that never arrived.</p></details>
+    <details><summary>Why is it a range and not a fixed number?</summary><p>Some communities are simply harder to work than others. Density, ownership mix, how much of the stock is tenanted and how often it turns over all change how many genuine conversations are there to be had. A villa community with 2,000 owners behaves nothing like a tower with 400 units. We tell you your number before you pay, and it does not move without us telling you.</p></details>
+    <details><summary>Why not just hire someone myself for the same money?</summary><p>You can, and plenty of agents try. At this budget you are hiring your first telesales person, paying their visa and seat, writing their script, listening to their calls and starting again when they leave. You are buying potential and managing it. Here you are buying output from people who already do this all day, with no employment risk attached.</p></details>
+    <details><summary>I already post on social media. Does this clash with that?</summary><p>No, it stacks. Social media builds an audience slowly and pays off much later, and a year of it might produce the volume you get here in a single month. This gives you named people in your community from week one. Plenty of agents run both, and plenty run this precisely because they have no interest in building a personal brand.</p></details>
+    <details><summary>Can I cover more than one community?</summary><p>Up to three. Two communities is 20 to 40 leads a month at AED 7,000, three is 30 to 60 at AED 10,000, so the rate per lead falls as you add. Most agents start with one, see what their conversion actually looks like, then add when the pipeline can take it.</p></details>
+    <details><summary>Do you do off plan?</summary><p>No. There are plenty of companies running ads for off plan launches. We do the harder thing, which is finding real buyers and sellers inside established communities.</p></details>
+    <details><summary>How do the leads reach me?</summary><p>Straight to your Telegram the moment each one comes in, with the name, number, property and a short note on what they said. Telegram because it is instant and reliable, and it takes one tap to connect after you subscribe. Everything also lands in your dashboard, so nothing is ever lost in a chat thread.</p></details>
+    <details><summary>Are these leads ready to transact?</summary><p>They are warm, not closed. They have said they are interested. Qualifying properly, building trust and winning the instruction is still your job. Anyone promising you signed listings is selling you something else.</p></details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap ft">
+    <span>Patch · Dubai and Abu Dhabi</span>
+    <span><a href="#" id="waFooter">Questions? Message us on WhatsApp</a></span>
+  </div>
+</footer>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Checkout">
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet-panel">
+    <div class="sheet-hd">
+      <div><h3>Checkout</h3><p id="sheetSum"></p></div>
+      <button class="x" data-close aria-label="Close checkout">&times;</button>
+    </div>
+    <div class="sheet-body">
+      <div id="sheetLoad" class="sheet-load"><div class="spin"></div><span>Opening secure checkout</span></div>
+      <div id="stripeMount"></div>
+      <div id="sheetErr" class="err" style="margin-top:0"></div>
+      <div id="sheetDone" class="done" hidden>
+        <div class="ring"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></div>
+        <h3>You are in.</h3>
+        <p id="doneSum"></p>
+        <div class="next">
+          <ol>
+            <li><b>Connect Telegram.</b> One tap, and every lead lands on your phone the second it comes in.</li>
+            <li>We confirm your exact monthly number for this community today.</li>
+            <li>The team starts working your patch, and your first leads follow within days.</li>
+          </ol>
+        </div>
+        <a class="btn btn-lg" id="tgConnect" target="_blank" rel="noopener" hidden style="margin-bottom:10px">Connect Telegram now</a>
+        <a class="btn btn-lg btn-ghost" id="dashLink" target="_blank" rel="noopener" hidden style="margin-bottom:10px;border:1px solid var(--line)">Open my dashboard</a>
+        <button class="btn btn-lg btn-dark" data-close>Close</button>
+      </div>
+      <div class="trustline" id="trust">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Card details handled by Stripe. We never see or store them.
+      </div>
+    </div>
+  </div>
+</div>
+
+<a class="wa" id="waFloat" href="#" target="_blank" rel="noopener">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.5h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2"/></svg>
+  <span>Questions?</span>
+</a>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG — everything you need to change lives here
+   ═══════════════════════════════════════════════════════════════ */
+const CONFIG = {
+  brand: "Patch",
+  // On page checkout. Both of these come from the Railway service.
+  apiBase: "",              // e.g. "https://patch-api.up.railway.app" (no trailing slash)
+  stripePublicKey: "",      // pk_live_... or pk_test_...
+
+  whatsapp: "971500000000", // digits only, no plus sign
+  leadWebhook: "",          // optional: capture form fills before payment
+
+  // Fallback only. Used if apiBase is empty, so the page still sells
+  // before the API is deployed. Sends the agent to a Stripe hosted page.
+  stripeLinks: {
+    1: "https://buy.stripe.com/REPLACE_ONE_COMMUNITY",
+    2: "https://buy.stripe.com/REPLACE_TWO_COMMUNITIES",
+    3: "https://buy.stripe.com/REPLACE_THREE_COMMUNITIES"
+  }
+};
+
+// Change prices here. n is how many communities the agent covers.
+const TIERS = [
+  { n:1, role:"One community",    vol:"10 to 20", price:4000,  note:"Most agents start here" },
+  { n:2, role:"Two communities",  vol:"20 to 40", price:7000,  note:"Save AED 1,000 a month" },
+  { n:3, role:"Three communities",vol:"30 to 60", price:10000, note:"Save AED 2,000 a month" }
+];
+const MAX_COMMUNITIES = 3;
+const tierFor = k => TIERS.find(t => t.n === Math.min(Math.max(k,1), MAX_COMMUNITIES));
+
+const COMMUNITIES = {
+  dubai:["Springs","Meadows","Lakes","Emirates Hills","Jumeirah Islands","Jumeirah Park","The Greens","The Views","Arabian Ranches","Arabian Ranches 2","Arabian Ranches 3","Dubai Hills Estate","Downtown Dubai","Business Bay","Dubai Marina","JBR","Bluewaters","Palm Jumeirah","Jumeirah Golf Estates","Victory Heights","Al Barari","Tilal Al Ghaf","Damac Hills","Damac Hills 2","The Villa","Mudon","Town Square","Serena","Mira","Reem","JVC","JVT","Al Furjan","Discovery Gardens","Motor City","Dubai Creek Harbour","Sobha Hartland","MBR City","Nad Al Sheba","The Valley","Mirdif","Umm Suqeim","Jumeirah","Al Wasl","City Walk","Living Legends","Remraam","Dubai Silicon Oasis","Barsha South"],
+  abudhabi:["Saadiyat Island","Yas Island","Al Reem Island","Al Raha Beach","Al Raha Gardens","Khalifa City","Al Reef","Hidd Al Saadiyat","Jubail Island","Al Zeina","Al Bandar","Masdar City","Al Ghadeer","Mohammed Bin Zayed City","Al Mushrif","Al Bateen"]
+};
+
+const state = { city:"dubai", picked:[], mix:"An even split" };
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString("en-AE");
+const tier  = () => tierFor(state.picked.length || 1);
+const price = () => tier().price;
+const listNames = a => a.length<2 ? (a[0]||"") : a.slice(0,-1).join(", ")+" and "+a[a.length-1];
+
+/* ── hero aerial plan ───────────────────────────────────────── */
+(function drawPlan(){
+  const W=1600,H=900,NS="http://www.w3.org/2000/svg";
+  const svg=$("plan"); svg.setAttribute("viewBox","0 0 "+W+" "+H);
+  const g=document.createElementNS(NS,"g");
+  const line=(d,w,o)=>{const p=document.createElementNS(NS,"path");
+    p.setAttribute("d",d);p.setAttribute("fill","none");
+    p.setAttribute("stroke","#2ECFBB");p.setAttribute("stroke-width",w);
+    p.setAttribute("stroke-opacity",o);g.appendChild(p);};
+
+  // curved streets, like a villa community from above
+  for(let i=0;i<11;i++){
+    const y=120+i*72, a=26+i*3;
+    line("M -60 "+y+" C 320 "+(y-a)+", 620 "+(y+a)+", 980 "+(y-a*.6)+" S 1420 "+(y+a*.5)+", 1700 "+(y-a*.3), 1, .13);
+  }
+  // plot marks along the streets
+  for(let i=0;i<11;i++){
+    const y=120+i*72;
+    for(let x=-20;x<W+40;x+=54){
+      const r=document.createElementNS(NS,"rect");
+      const jit=Math.sin(x*.011+i)*13;
+      r.setAttribute("x",x); r.setAttribute("y",y+jit+9);
+      r.setAttribute("width",30); r.setAttribute("height",18);
+      r.setAttribute("rx",2.5); r.setAttribute("fill","none");
+      r.setAttribute("stroke","#2ECFBB");
+      r.setAttribute("stroke-opacity", .05 + (Math.sin(x*.02+i*1.7)+1)*.045);
+      r.setAttribute("stroke-width",1); g.appendChild(r);
+    }
+  }
+  // a lake, the thing every Dubai community is built around
+  const lake=document.createElementNS(NS,"path");
+  lake.setAttribute("d","M 980 300 C 1180 250, 1400 320, 1430 470 C 1455 600, 1250 690, 1090 640 C 940 594, 900 400, 980 300 Z");
+  lake.setAttribute("fill","#2ECFBB"); lake.setAttribute("fill-opacity",".055");
+  lake.setAttribute("stroke","#2ECFBB"); lake.setAttribute("stroke-opacity",".16");
+  g.appendChild(lake);
+  svg.appendChild(g);
+})();
+
+/* ── static config into the page ────────────────────────────── */
+const waUrl = "https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent("Hi, I saw the "+CONFIG.brand+" page and I have a question about the community leads.");
+$("waFloat").href=waUrl; $("waFooter").href=waUrl;
+
+/* ── tiers ──────────────────────────────────────────────────── */
+$("tiers").innerHTML = TIERS.map(t =>
+  '<button class="tier" data-n="'+t.n+'" aria-pressed="'+(t.n===1)+'">'
+  + '<div class="role">'+t.role+'</div>'
+  + '<span class="vol">'+t.vol+'</span><span class="vl">warm leads a month · '+t.note+'</span>'
+  + '<div class="cost">AED '+fmt(t.price)+' <span>per month</span></div></button>'
+).join("");
+if(TIERS.length===3) $("tiers").style.gridTemplateColumns = window.innerWidth>880 ? "repeat(3,1fr)" : "1fr";
+
+// Tiers are driven by how many communities they pick, so a tier card
+// sends them back to the picker rather than setting a price on its own.
+$("tiers").addEventListener("click", e => {
+  const b=e.target.closest(".tier"); if(!b) return;
+  const want=+b.dataset.n;
+  document.querySelector(".picker").scrollIntoView({block:"center"});
+  const need=want-state.picked.length;
+  $("pickHint").textContent = need>0
+    ? "Pick "+need+" more "+(need===1?"community":"communities")+" to reach "+tierFor(want).role.toLowerCase()+"."
+    : "You already have "+tierFor(state.picked.length).role.toLowerCase()+" selected.";
+});
+
+/* ── community chips ────────────────────────────────────────── */
+const chipsEl=$("chips"), searchEl=$("search");
+function renderChips(){
+  const q=searchEl.value.trim().toLowerCase();
+  const list=COMMUNITIES[state.city].filter(c=>c.toLowerCase().includes(q));
+  chipsEl.innerHTML = list.length
+    ? list.map(c=>'<button class="chip" aria-pressed="'+state.picked.includes(c)+'" data-c="'+c+'">'+c+'</button>').join("")
+    : '<p class="empty">No match. Message us on WhatsApp and we will tell you when we open it.</p>';
+}
+chipsEl.addEventListener("click", e=>{
+  const b=e.target.closest(".chip"); if(!b) return;
+  const c=b.dataset.c, at=state.picked.indexOf(c);
+  if(at>-1) state.picked.splice(at,1);
+  else if(state.picked.length>=MAX_COMMUNITIES){
+    $("pickHint").textContent="Three communities is the most one agent can cover well. Deselect one to swap.";
+    return;
+  } else state.picked.push(c);
+  renderChips(); sync();
+});
+searchEl.addEventListener("input", renderChips);
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected","false"));
+  t.setAttribute("aria-selected","true");
+  state.city=t.dataset.city; searchEl.value=""; renderChips();
+}));
+document.querySelectorAll(".mix button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".mix button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed","true"); state.mix=b.dataset.mix; sync();
+}));
+
+/* ── keep every price and label in step ─────────────────────── */
+const nameEl=$("patchName");
+function sync(){
+  const t=tier(), p=t.price, n=state.picked.length, base=TIERS[0];
+  const joined=listNames(state.picked);
+  const label = n===0 ? "your community" : (joined.length<=34 ? joined : "your communities");
+  if(nameEl.textContent!==label){
+    nameEl.style.opacity=0;
+    setTimeout(()=>{nameEl.textContent=label;nameEl.style.opacity=1;},170);
+  }
+  $("heroVol").textContent  = n>1 ? t.vol : base.vol;
+  $("factVol").textContent  = n>1 ? t.vol : base.vol;
+  $("hdPrice").textContent  = "From AED "+fmt(base.price)+" a month";
+  $("factPrice").textContent= "AED "+fmt(p);
+  $("barOurs").innerHTML    = "AED "+fmt(base.price)+"<small>per month, "+base.vol+" leads</small>";
+  $("priceBig").textContent = "AED "+fmt(p);
+  $("priceSub").textContent = "per month \u00B7 "+t.role.toLowerCase()+" \u00B7 cancel anytime";
+
+  const lo=+t.vol.split(" to ")[0], hi=+t.vol.split(" to ")[1];
+  $("inclVol").textContent="Between "+lo+" and "+hi+" warm buyer or seller leads a month";
+  $("inclCom").textContent = n>1
+    ? "All "+n+" of your communities covered, one agent each"
+    : "One agent per community while you are subscribed";
+  $("perLead").textContent="That works out at AED "+fmt(Math.round(p/hi))+" to "+fmt(Math.round(p/lo))
+    +" for a named person who has told us they want to move. One deal covers the year twice over.";
+
+  document.querySelectorAll(".tier").forEach(x=>x.setAttribute("aria-pressed", +x.dataset.n===(n||1)));
+
+  $("pickCount").textContent = n===0 ? "" : n+" of "+MAX_COMMUNITIES+" selected";
+  $("pickHint").textContent = n===0
+    ? "Pick the community you work. Add up to three."
+    : n<MAX_COMMUNITIES
+      ? "Add another and you are on "+tierFor(n+1).role.toLowerCase()+", "+tierFor(n+1).vol+" leads for AED "+fmt(tierFor(n+1).price)+"."
+      : "Full coverage. Three communities, "+t.vol+" leads a month.";
+
+  $("recap").innerHTML = n
+    ? t.vol+" warm leads a month across <b>"+joined+"</b>. "+state.mix+". AED "+fmt(p)+" a month."
+    : "Pick a community above to get started.";
+}
+renderChips(); sync();
+
+/* ── checkout ───────────────────────────────────────────────── */
+const err=$("err"), btn=$("submitBtn"), val=id=>$(id).value.trim();
+const sheet=$("sheet");
+let embedded=null, opening=false, lastSecret="";
+
+function collect(){
+  return {firstName:val("fname"),lastName:val("lname"),email:val("email"),phone:val("phone"),
+    city:state.city==="dubai"?"Dubai":"Abu Dhabi",
+    community:listNames(state.picked),communities:state.picked.slice(),
+    tier:state.picked.length||1,mix:state.mix,priceAED:price(),
+    volume:tier().vol,ts:new Date().toISOString()};
+}
+
+function validate(d){
+  if(!state.picked.length){ document.querySelector(".picker").scrollIntoView({block:"center"}); return "Pick your community first, up at the top of the page."; }
+  if(!d.firstName||!d.lastName) return "We need your first and last name.";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) return "That email does not look right.";
+  if(d.phone.replace(/\D/g,"").length<8) return "Add a mobile number we can reach you on.";
+  return null;
+}
+
+btn.addEventListener("click", async ()=>{
+  if(opening) return;
+  err.style.display="none";
+  const d=collect(), problem=validate(d);
+  if(problem) return fail(problem);
+
+  opening=true; btn.disabled=true; btn.textContent="Opening checkout";
+
+  if(CONFIG.leadWebhook){
+    try{ await fetch(CONFIG.leadWebhook,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)}); }
+    catch(e){ /* never block checkout on the webhook */ }
+  }
+
+  // No API configured yet, so fall back to the hosted Stripe page.
+  if(!CONFIG.apiBase || !CONFIG.stripePublicKey){
+    const link=CONFIG.stripeLinks[d.tier];
+    if(!link) { reset(); return fail("Checkout is not configured yet. Message us on WhatsApp and we will get you started."); }
+    const ref=(d.community+"|"+d.mix).replace(/[^a-zA-Z0-9|_ ]/g,"").replace(/\s+/g,"-").slice(0,190);
+    window.location.href = link+(link.includes("?")?"&":"?")
+      +"prefilled_email="+encodeURIComponent(d.email)
+      +"&client_reference_id="+encodeURIComponent(ref);
+    return;
+  }
+
+  openSheet(d);
+  try{
+    const r = await fetch(CONFIG.apiBase+"/create-checkout-session",{
+      method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(d)
+    });
+    if(!r.ok) throw new Error("session " + r.status);
+    const { clientSecret } = await r.json();
+    if(!clientSecret) throw new Error("no client secret");
+    lastSecret = clientSecret;
+
+    if(embedded){ try{ embedded.destroy(); }catch(e){} embedded=null; }
+    const stripe = Stripe(CONFIG.stripePublicKey);
+    embedded = await stripe.initEmbeddedCheckout({
+      clientSecret,
+      onComplete: () => showDone(d)
+    });
+    $("sheetLoad").style.display="none";
+    embedded.mount("#stripeMount");
+  }catch(e){
+    $("sheetLoad").style.display="none";
+    const se=$("sheetErr");
+    se.textContent="We could not open checkout. Message us on WhatsApp and we will get you started in a minute.";
+    se.style.display="block";
+  }
+  reset();
+});
+
+function openSheet(d){
+  $("sheetSum").textContent = d.volume+" warm leads a month across "+d.community+" \u00B7 AED "+fmt(d.priceAED)+" a month";
+  $("sheetErr").style.display="none";
+  $("sheetDone").hidden=true;
+  $("stripeMount").style.display="";
+  $("trust").style.display="";
+  $("sheetLoad").style.display="flex";
+  sheet.classList.add("open");
+  document.body.style.overflow="hidden";
+}
+
+function closeSheet(){
+  sheet.classList.remove("open");
+  document.body.style.overflow="";
+  if(embedded){ try{ embedded.destroy(); }catch(e){} embedded=null; }
+}
+
+async function showDone(d){
+  if(embedded){ try{ embedded.destroy(); }catch(e){} embedded=null; }
+  $("stripeMount").style.display="none";
+  $("trust").style.display="none";
+  $("sheetErr").style.display="none";
+  $("doneSum").textContent = d.firstName+", "+d.community+" "+(d.tier>1?"are":"is")+" yours. "+d.volume+" warm leads a month, "+d.mix.toLowerCase()+".";
+  $("sheetDone").hidden=false;
+
+  // pull the Telegram connect link and dashboard link for this subscription
+  try{
+    const r = await fetch(CONFIG.apiBase+"/onboarding",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ sessionId: lastSecret })
+    });
+    if(!r.ok) return;
+    const o = await r.json();
+    if(o.telegramLink){ $("tgConnect").href=o.telegramLink; $("tgConnect").hidden=false; }
+    if(o.dashboardLink){ $("dashLink").href=o.dashboardLink; $("dashLink").hidden=false; }
+  }catch(e){ /* they can still reach us on WhatsApp */ }
+}
+
+sheet.addEventListener("click", e=>{ if(e.target.closest("[data-close]")) closeSheet(); });
+addEventListener("keydown", e=>{ if(e.key==="Escape" && sheet.classList.contains("open")) closeSheet(); });
+
+function reset(){ opening=false; btn.disabled=false; btn.textContent="Continue to payment"; }
+function fail(m){ err.textContent=m; err.style.display="block"; reset(); }
+
+/* ── scroll behaviour ───────────────────────────────────────── */
+const hdr=$("hdr");
+addEventListener("scroll",()=>hdr.classList.toggle("solid",scrollY>60),{passive:true});
+
+const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting) return;
+  e.target.classList.add("in");
+  if(e.target.classList.contains("bar")){
+    const f=e.target.querySelector(".fill");
+    setTimeout(()=>f.style.width=e.target.dataset.fill+"%",120);
+  }
+  io.unobserve(e.target);
+}),{threshold:.15,rootMargin:"0px 0px -40px 0px"});
+document.querySelectorAll(".reveal").forEach((el,i)=>{el.style.transitionDelay=(i%3)*70+"ms";io.observe(el);});
+</script>
+</body>
+</html>
