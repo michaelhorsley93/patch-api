@@ -25,7 +25,11 @@ const {
 if (!STRIPE_SECRET_KEY) { console.error("STRIPE_SECRET_KEY missing"); process.exit(1); }
 if (!ADMIN_KEY) { console.error("ADMIN_KEY missing. Set a long random string."); process.exit(1); }
 
-const stripe = new Stripe(STRIPE_SECRET_KEY);
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
+  httpClient: Stripe.createFetchHttpClient(),
+  maxNetworkRetries: 2,
+  timeout: 20000
+});
 const PRICES = { 1: PRICE_1_DESK, 2: PRICE_2_DESKS, 3: PRICE_3_DESKS };
 // n = how many communities the agent covers
 const VOLUME = { 1: "10 to 20", 2: "20 to 40", 3: "30 to 60" };
@@ -160,7 +164,9 @@ app.post("/create-checkout-session", async (req, res) => {
     });
     res.json({ clientSecret: session.client_secret });
   } catch (e) {
-    console.error("Session create failed:", e.message);
+    console.error("Session create failed:", e.type || "", e.message);
+    if (e.detail) console.error("  cause:", e.detail.code || e.detail.message || e.detail);
+    if (e.cause)  console.error("  cause:", e.cause.code || e.cause.message || e.cause);
     res.status(500).json({ error: "could not create session" });
   }
 });
