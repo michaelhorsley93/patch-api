@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
 <title>Patch — your prospecting desk in Dubai and Abu Dhabi</title>
 <meta name="description" content="Warm buyer and seller leads in the community you work. We run the phones. You close. From AED 4,000 a month.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,6 +12,7 @@
 <script src="https://js.stripe.com/v3/"></script>
 <style>
 :root{
+  color-scheme:light only;
   --deep:#04222C;
   --deep-2:#083344;
   --deep-3:#0C4254;
@@ -20,8 +22,8 @@
   --paper:#F5F7F6;
   --surface:#FFFFFF;
   --ink:#08191F;
-  --ink-2:#42565C;
-  --ink-3:#7B8D92;
+  --ink-2:#33474E;
+  --ink-3:#5F7278;
   --line:#DFE5E4;
   --line-dk:rgba(255,255,255,.14);
   --r:14px;
@@ -91,20 +93,46 @@ header.solid{background:rgba(4,34,44,.82);backdrop-filter:blur(16px);border-colo
 .search{border:1px solid var(--line-dk);border-radius:100px;padding:10px 16px;font-family:'Manrope',sans-serif;font-size:14px;width:210px;background:rgba(0,0,0,.2);color:#fff}
 .search::placeholder{color:rgba(255,255,255,.4)}
 .search:focus{outline:none;border-color:var(--aqua)}
+.types{display:flex;gap:5px;padding:0 18px 14px;flex-wrap:wrap}
+.types button{font-size:13px;font-weight:600;padding:8px 15px;border:1px solid var(--line-dk);background:transparent;border-radius:100px;color:rgba(255,255,255,.6);cursor:pointer;font-family:'Manrope',sans-serif;transition:.18s}
+.types button:hover{color:#fff;border-color:rgba(255,255,255,.34)}
+.types button[aria-pressed="true"]{background:#fff;border-color:#fff;color:var(--deep)}
 .chips{display:flex;flex-wrap:wrap;gap:8px;padding:18px;max-height:212px;overflow-y:auto;scrollbar-width:thin}
 .chips::-webkit-scrollbar{width:5px}
 .chips::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:9px}
 .chip{font-size:13.5px;font-weight:500;padding:8px 15px;border:1px solid var(--line-dk);background:rgba(255,255,255,.04);border-radius:100px;cursor:pointer;color:rgba(255,255,255,.8);font-family:'Manrope',sans-serif;transition:.18s}
 .chip:hover{background:rgba(255,255,255,.11);color:#fff;transform:translateY(-1px)}
-.chip[aria-pressed="true"]{background:var(--aqua);border-color:var(--aqua);color:var(--deep);font-weight:700}
-.pk-hint{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:11px 18px;border-top:1px solid var(--line-dk);font-size:13px;color:rgba(255,255,255,.6);flex-wrap:wrap}
-.pk-hint b{color:var(--aqua);font-weight:700;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--aqua);border-color:var(--aqua);color:var(--deep);font-weight:700;
+  box-shadow:0 0 0 3px rgba(46,207,187,.25);padding-left:31px;position:relative}
+.chip[aria-pressed="true"]::before{content:"";position:absolute;left:13px;top:50%;width:5px;height:9px;
+  margin-top:-6px;border:solid var(--deep);border-width:0 2px 2px 0;transform:rotate(42deg)}
+.picked{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:13px 18px;border-top:1px solid var(--line-dk);background:rgba(46,207,187,.07)}
+.picked-l{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-right:2px}
+.pk{display:inline-flex;align-items:center;gap:9px;background:var(--aqua);color:var(--deep);border:0;
+  border-radius:100px;padding:8px 10px 8px 15px;font-family:'Manrope',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer}
+.pk span{opacity:.6;font-size:12px;font-weight:600}
+.pk i{font-style:normal;width:18px;height:18px;border-radius:50%;background:rgba(4,34,44,.16);display:flex;
+  align-items:center;justify-content:center;font-size:14px;line-height:1}
+.pk:hover i{background:rgba(4,34,44,.32)}
+.picked[hidden]{display:none}
+.gauge{padding:15px 18px 17px;border-top:1px solid var(--line-dk);background:rgba(0,0,0,.16)}
+.gauge-t{display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+.gauge-n{font-family:'Sora',sans-serif;font-size:23px;font-weight:700;letter-spacing:-.035em;color:var(--aqua)}
+.gauge-l{font-size:13px;color:rgba(255,255,255,.55);margin-left:9px}
+.gauge-t b{color:var(--aqua);font-weight:700;font-size:12.5px;white-space:nowrap}
+.gauge-track{height:8px;background:rgba(255,255,255,.08);border-radius:100px;margin:12px 0 10px;overflow:hidden}
+.gauge-fill{display:block;height:100%;width:8%;border-radius:100px;background:linear-gradient(90deg,var(--aqua-2),var(--aqua));transition:width .55s cubic-bezier(.2,.8,.2,1)}
+.gauge-h{font-size:12.5px;color:rgba(255,255,255,.55);margin:0}
+.seg[hidden]{display:none}
+.seg{display:inline-block;margin-left:10px;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:rgba(46,207,187,.16);color:var(--aqua);vertical-align:2px}
 .pk-ft{border-top:1px solid var(--line-dk);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;background:rgba(0,0,0,.14)}
 .mixlab{font-size:11.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:8px}
 .mix{display:flex;gap:5px;background:rgba(0,0,0,.24);padding:4px;border-radius:100px}
 .mix button{font-size:13.5px;font-weight:600;padding:8px 15px;border:0;background:transparent;border-radius:100px;cursor:pointer;color:rgba(255,255,255,.6);font-family:'Manrope',sans-serif;transition:.2s}
 .mix button[aria-pressed="true"]{background:#fff;color:var(--deep)}
 .empty{font-size:13.5px;color:rgba(255,255,255,.5);padding:6px 2px}
+.avail{font-size:13px;color:rgba(255,255,255,.5);margin-top:14px;max-width:640px}
+.avail a{color:var(--aqua);text-decoration:underline;text-underline-offset:3px}
 .hero-facts{display:flex;gap:clamp(20px,4vw,46px);margin-top:34px;flex-wrap:wrap}
 .fact .n{font-family:'Sora',sans-serif;font-size:clamp(24px,3vw,32px);font-weight:700;letter-spacing:-.04em;display:block;color:#fff}
 .fact .l{font-size:12.5px;color:rgba(255,255,255,.5);font-weight:500}
@@ -127,6 +155,27 @@ section{padding:clamp(54px,6.4vw,88px) 0}
 .hicon{width:42px;height:42px;border-radius:11px;background:#E4F7F4;display:flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--aqua-2)}
 .hcard h3{margin-bottom:9px}
 .hcard p{font-size:14.5px}
+
+/* ── earnings calculator ── */
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+@media(max-width:880px){.calc{grid-template-columns:1fr}}
+.calc-in{background:var(--surface);padding:30px 28px;display:flex;flex-direction:column;gap:26px;justify-content:center}
+.calc-row label{display:block;font-size:15px;color:var(--ink-2);margin-bottom:12px}
+.calc-row label b{color:var(--ink);font-weight:700}
+.calc-note{display:block;font-size:12.5px;color:var(--ink-3);margin-top:8px}
+.calc-in input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:100px;background:var(--line);outline:none}
+.calc-in input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--aqua-2);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 8px rgba(8,25,31,.22)}
+.calc-in input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--aqua-2);cursor:pointer;border:3px solid #fff}
+.calc-out{background:var(--deep);color:#fff;padding:30px 28px;display:flex;flex-direction:column;justify-content:center}
+.calc-empty{color:rgba(255,255,255,.5);font-size:15px;text-align:center;padding:40px 0}
+.calc-line{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.09);font-size:14.5px;color:rgba(255,255,255,.62)}
+.calc-line b{font-family:'Sora',sans-serif;font-weight:600;font-size:16px;color:#fff;letter-spacing:-.02em}
+.calc-line.sub b{color:#E6D8BE}
+.calc-big{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:20px 0 6px}
+.calc-big span{font-size:14.5px;color:rgba(255,255,255,.62)}
+.calc-big b{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(28px,4vw,40px);letter-spacing:-.04em;color:var(--aqua)}
+.calc-mult{font-size:13.5px;color:rgba(255,255,255,.55)}
+.calc-dis{font-size:13px;color:var(--ink-3);margin-top:18px;max-width:760px}
 
 /* ── cost bars ── */
 .bars{display:flex;flex-direction:column;gap:16px;margin-top:8px}
@@ -183,12 +232,13 @@ section{padding:clamp(54px,6.4vw,88px) 0}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:880px){.two{grid-template-columns:1fr}}
 .col{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:30px 28px}
-.col.is-not{background:transparent}
+.col.is-not{background:#EAEEEC}
 .col h3{margin-bottom:20px}
 .col ul{list-style:none;display:flex;flex-direction:column;gap:13px}
 .col li{font-size:15px;color:var(--ink-2);padding-left:26px;position:relative}
+.col.is-not li{color:#3C5158}
 .col li::before{content:"";position:absolute;left:0;top:9px;width:8px;height:8px;border-radius:50%;background:var(--aqua)}
-.col.is-not li::before{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-3);opacity:.5}
+.col.is-not li::before{background:transparent;box-shadow:inset 0 0 0 2px var(--ink-3);opacity:.85}
 
 /* ── soon ── */
 .soon{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:clamp(28px,4vw,44px);display:grid;grid-template-columns:1fr auto;gap:36px;align-items:center}
@@ -260,7 +310,7 @@ footer{background:var(--deep);color:rgba(255,255,255,.5);padding:38px 0;font-siz
     <div class="logo"><i></i>Patch</div>
     <div class="hd-r">
       <span class="hd-p" id="hdPrice"></span>
-      <a href="#start" class="btn btn-sm">Claim your community</a>
+      <button type="button" class="btn btn-sm" data-goto="start">Claim your community</button>
     </div>
   </div>
 </header>
@@ -270,7 +320,7 @@ footer{background:var(--deep);color:rgba(255,255,255,.5);padding:38px 0;font-siz
   <svg id="plan" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
   <div class="wrap">
     <div class="hero-eb"><span class="pip"></span><span class="eyebrow">Dubai and Abu Dhabi · Resale and leasing</span></div>
-    <h1><span id="heroVol">10 to 20</span> warm buyer and seller leads in <em id="patchName">your community</em>, every month.</h1>
+    <h1>Warm buyer and seller leads in <em id="patchName">your community</em>, every month.</h1>
     <p class="hero-sub">We run the phones on your patch. You get handed people who have already said they want to move.</p>
 
     <div class="picker">
@@ -281,8 +331,21 @@ footer{background:var(--deep);color:rgba(255,255,255,.5);padding:38px 0;font-siz
         </div>
         <input class="search" id="search" type="search" placeholder="Search communities" aria-label="Search communities">
       </div>
+      <div class="types" role="group" aria-label="Property type">
+        <button data-t="all" aria-pressed="true">Everything</button>
+        <button data-t="a" aria-pressed="false">Apartments</button>
+        <button data-t="v" aria-pressed="false">Villas and townhouses</button>
+      </div>
       <div class="chips" id="chips"></div>
-      <div class="pk-hint"><span id="pickHint">Pick the community you work. Add up to three.</span><b id="pickCount"></b></div>
+      <div class="picked" id="picked" hidden></div>
+      <div class="gauge">
+        <div class="gauge-t">
+          <div><span class="gauge-n" id="gaugeN">&mdash;</span><span class="gauge-l">warm leads a month on your patch</span><span class="seg" id="gaugeSeg" hidden></span></div>
+          <b id="pickCount"></b>
+        </div>
+        <div class="gauge-track"><span class="gauge-fill" id="gaugeFill"></span></div>
+        <p class="gauge-h" id="pickHint">Pick the community you work. Your number is set by how much that patch actually transacts.</p>
+      </div>
       <div class="pk-ft">
         <div>
           <div class="mixlab">I mostly want</div>
@@ -292,12 +355,14 @@ footer{background:var(--deep);color:rgba(255,255,255,.5);padding:38px 0;font-siz
             <button data-mix="An even split" aria-pressed="true">Even split</button>
           </div>
         </div>
-        <a href="#start" class="btn">Continue</a>
+        <button type="button" class="btn" data-goto="start">Continue</button>
       </div>
     </div>
 
+    <p class="avail">Cannot see your community, or only work part of one? <a id="waAvail" target="_blank" rel="noopener">Message us on WhatsApp</a> and we will confirm availability.</p>
+
     <div class="hero-facts">
-      <div class="fact"><span class="n" id="factVol">10 to 20</span><span class="l">Warm leads a month</span></div>
+      <div class="fact"><span class="n" id="factVol">Set by your patch</span><span class="l">Warm leads a month</span></div>
       <div class="fact"><span class="n">1</span><span class="l">Agent per community</span></div>
       <div class="fact"><span class="n" id="factPrice"></span><span class="l">Per month, cancel anytime</span></div>
     </div>
@@ -329,6 +394,50 @@ footer{background:var(--deep);color:rgba(255,255,255,.5);padding:38px 0;font-siz
         <p>Cover a second or third community whenever you want, at a lower rate per lead, without a single conversation about salaries or office space.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- EARNINGS -->
+<section id="worth">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="eyebrow">What that is worth</span>
+      <h2>Run the numbers on your own patch.</h2>
+      <p>Pick your community above, then set how well you convert and what your brokerage leaves you. The maths is yours, not ours.</p>
+    </div>
+
+    <div class="calc reveal">
+      <div class="calc-in">
+        <div class="calc-row">
+          <label for="conv">You convert <b id="convL">1 in 20</b> leads into a deal</label>
+          <input type="range" id="conv" min="2" max="60" step="1" value="15">
+          <span class="calc-note" id="convNote">Starts at one deal from each monthly batch. Drag right if you want to be conservative.</span>
+        </div>
+        <div class="calc-row">
+          <label for="split">Your share of the commission is <b id="splitL">50%</b></label>
+          <input type="range" id="split" min="30" max="100" step="5" value="50">
+          <span class="calc-note">After your brokerage takes theirs. 100% if you keep it all.</span>
+        </div>
+        <div class="calc-row">
+          <label for="fee">Commission charged is <b id="feeL">2%</b></label>
+          <input type="range" id="fee" min="1" max="3" step="0.5" value="2">
+        </div>
+      </div>
+
+      <div class="calc-out" id="calcOut">
+        <div class="calc-empty" id="calcEmpty">Pick a community above and this fills in.</div>
+        <div id="calcFilled" hidden>
+          <div class="calc-line"><span>Leads a year</span><b id="oLeads">—</b></div>
+          <div class="calc-line"><span>Deals closed</span><b id="oDeals">—</b></div>
+          <div class="calc-line"><span>Average sale price</span><b id="oPrice">—</b></div>
+          <div class="calc-line"><span>Your commission a year</span><b id="oComm">—</b></div>
+          <div class="calc-line sub"><span>Less what you pay us</span><b id="oCost">—</b></div>
+          <div class="calc-big"><span>You keep</span><b id="oNet">—</b></div>
+          <div class="calc-mult" id="oMult"></div>
+        </div>
+      </div>
+    </div>
+    <p class="calc-dis reveal">An illustration built on average sale prices in your community, not a forecast and not a promise. Averages hide a lot, some months are quiet, and whether any of this happens depends on how you work the leads. We deliver conversations. The rest is you.</p>
   </div>
 </section>
 
@@ -440,7 +549,7 @@ footer{background:var(--deep);color:rgba(255,255,255,.5);padding:38px 0;font-siz
           <li>A named person in your community who has said they are open to buying or selling</li>
           <li>Their number, the property or building, and the notes from our conversation</li>
           <li>Context on timing, other agents they have spoken to, and what prompted the call</li>
-          <li>Between 10 and 20 of these a month, agreed with you before you subscribe</li>
+          <li>A monthly number set by what your specific community transacts, agreed before you subscribe</li>
           <li>A dashboard holding every lead you have been sent, and where each one stands</li>
           <li>The hours back that you currently spend dialling strangers</li>
         </ul>
@@ -487,7 +596,9 @@ footer{background:var(--deep);color:rgba(255,255,255,.5);padding:38px 0;font-siz
     <details open><summary>Where do the leads actually come from?</summary><p>A team working the phones inside your community every day. Owners, tenants and past enquiries. Every lead is someone who has had a real conversation with a real person and said they are open to buying or selling. Nothing is scraped, bought from a list, or generated by a form fill.</p></details>
     <details><summary>Is the lead exclusive to me?</summary><p>Yes. One agent per community, and while your subscription is active nobody else gets leads from your patch. If your community is already taken you go on the waitlist and we tell you where you sit.</p></details>
     <details><summary>How many leads exactly, and what if you fall short?</summary><p>Between 10 and 20 a month, and we agree your number with you before you subscribe rather than promising every community the same figure. If we land under it, the shortfall carries into the next month on top of your normal volume. Fall two short and you get two extra, at no cost. If we still cannot deliver, we refund you pro rata. We do not keep money for leads that never arrived.</p></details>
-    <details><summary>Why is it a range and not a fixed number?</summary><p>Some communities are simply harder to work than others. Density, ownership mix, how much of the stock is tenanted and how often it turns over all change how many genuine conversations are there to be had. A villa community with 2,000 owners behaves nothing like a tower with 400 units. We tell you your number before you pay, and it does not move without us telling you.</p></details>
+    <details><summary>Why does the number change when I pick a different community?</summary><p>Communities are graded into three bands by average sale price, because price and transaction volume move in opposite directions. Standard communities like Dubai Marina or JVC turn over constantly, so you get 15 leads a month. Luxury communities like Arabian Ranches or Palm Jumeirah apartments get 10. Ultra luxury like Emirates Hills or a Palm frond villa gets 4, because there are only so many owners and only so many of them are moving. Promising everyone the same figure would mean overpromising somewhere.</p></details>
+    <details><summary>My community shows fewer leads. Am I getting less for my money?</summary><p>Fewer conversations, much bigger ones. One Emirates Hills instruction is worth more in commission than a year of studio deals, and ultra luxury patches are far less crowded with agents chasing the same handful of owners. If the volume does not work for you, take a second community and the total climbs.</p></details>
+    <details><summary>Why are Palm Jumeirah villas and apartments listed separately?</summary><p>Because they are different markets that happen to share an address. A frond villa and a Golden Mile apartment have almost nothing in common in price, buyer or how often they trade. Lumping them together would mean quoting you a villa number and delivering apartment leads, or the reverse. Where a master community splits like this, we list the parts separately.</p></details>
     <details><summary>Why not just hire someone myself for the same money?</summary><p>You can, and plenty of agents try. At this budget you are hiring your first telesales person, paying their visa and seat, writing their script, listening to their calls and starting again when they leave. You are buying potential and managing it. Here you are buying output from people who already do this all day, with no employment risk attached.</p></details>
     <details><summary>I already post on social media. Does this clash with that?</summary><p>No, it stacks. Social media builds an audience slowly and pays off much later, and a year of it might produce the volume you get here in a single month. This gives you named people in your community from week one. Plenty of agents run both, and plenty run this precisely because they have no interest in building a personal brand.</p></details>
     <details><summary>Can I cover more than one community?</summary><p>Up to three. Two communities is 20 to 40 leads a month at AED 7,000, three is 30 to 60 at AED 10,000, so the rate per lead falls as you add. Most agents start with one, see what their conversion actually looks like, then add when the pipeline can take it.</p></details>
@@ -550,8 +661,8 @@ footer{background:var(--deep);color:rgba(255,255,255,.5);padding:38px 0;font-siz
 const CONFIG = {
   brand: "Patch",
   // On page checkout. Both of these come from the Railway service.
-  apiBase: "",              // e.g. "https://patch-api.up.railway.app" (no trailing slash)
-  stripePublicKey: "",      // pk_live_... or pk_test_...
+  apiBase: "https://patch-api-production-0d21.up.railway.app",
+  stripePublicKey: "pk_test_51MU5JGCMCm8eMwjRIyRGNyj5RL77MmU4FfuixtpmIG1HEeoHiRlQ1fLmnRIm7XijJOvbUP8xxODTmtQFHq9s1kWE00phKNobcn",
 
   whatsapp: "971500000000", // digits only, no plus sign
   leadWebhook: "",          // optional: capture form fills before payment
@@ -567,23 +678,89 @@ const CONFIG = {
 
 // Change prices here. n is how many communities the agent covers.
 const TIERS = [
-  { n:1, role:"One community",    vol:"10 to 20", price:4000,  note:"Most agents start here" },
-  { n:2, role:"Two communities",  vol:"20 to 40", price:7000,  note:"Save AED 1,000 a month" },
-  { n:3, role:"Three communities",vol:"30 to 60", price:10000, note:"Save AED 2,000 a month" }
+  { n:1, role:"One community",    price:4000,  note:"Most agents start here" },
+  { n:2, role:"Two communities",  price:7000,  note:"Save AED 1,000 a month" },
+  { n:3, role:"Three communities",price:10000, note:"Save AED 2,000 a month" }
 ];
 const MAX_COMMUNITIES = 3;
 const tierFor = k => TIERS.find(t => t.n === Math.min(Math.max(k,1), MAX_COMMUNITIES));
 
-const COMMUNITIES = {
-  dubai:["Springs","Meadows","Lakes","Emirates Hills","Jumeirah Islands","Jumeirah Park","The Greens","The Views","Arabian Ranches","Arabian Ranches 2","Arabian Ranches 3","Dubai Hills Estate","Downtown Dubai","Business Bay","Dubai Marina","JBR","Bluewaters","Palm Jumeirah","Jumeirah Golf Estates","Victory Heights","Al Barari","Tilal Al Ghaf","Damac Hills","Damac Hills 2","The Villa","Mudon","Town Square","Serena","Mira","Reem","JVC","JVT","Al Furjan","Discovery Gardens","Motor City","Dubai Creek Harbour","Sobha Hartland","MBR City","Nad Al Sheba","The Valley","Mirdif","Umm Suqeim","Jumeirah","Al Wasl","City Walk","Living Legends","Remraam","Dubai Silicon Oasis","Barsha South"],
-  abudhabi:["Saadiyat Island","Yas Island","Al Reem Island","Al Raha Beach","Al Raha Gardens","Khalifa City","Al Reef","Hidd Al Saadiyat","Jubail Island","Al Zeina","Al Bandar","Masdar City","Al Ghadeer","Mohammed Bin Zayed City","Al Mushrif","Al Bateen"]
+// ─────────────────────────────────────────────────────────────
+// Communities are graded by average sale price into three segments.
+// Leads a month are fixed per segment, set in SEGMENTS below.
+//   ultra    roughly AED 15M+ average sale
+//   luxury   roughly AED 4M to 15M
+//   standard below roughly AED 4M
+// THE GRADES BELOW ARE ESTIMATES from general market knowledge, not
+// DLD figures. Cross check average sale price per community against
+// Dubai Pulse, DXB Analytics or BayutAPI and correct any that are
+// wrong. Changing a grade changes what you promise, so check them.
+// ─────────────────────────────────────────────────────────────
+const SEGMENTS = {
+  ultra:    { leads:4,  label:"Ultra luxury" },
+  luxury:   { leads:10, label:"Luxury" },
+  standard: { leads:15, label:"Standard" }
 };
 
-const state = { city:"dubai", picked:[], mix:"An even split" };
+const COMMUNITIES = {
+  dubai: [
+    ["Emirates Hills","ultra",35,"v"],["Palm Jumeirah Villas","ultra",40,"v"],["Al Barari","ultra",16,"v"],
+    ["Jumeirah Bay Island","ultra",60,"v"],["District One","ultra",22,"v"],
+
+    ["Palm Jumeirah Apartments","luxury",6,"a"],["Dubai Hills Estate Villas","luxury",11,"v"],
+    ["Meadows","luxury",6.5,"v"],["Lakes","luxury",5.5,"v"],["Jumeirah Park","luxury",7,"v"],
+    ["Jumeirah Islands","luxury",12,"v"],["Victory Heights","luxury",7.5,"v"],
+    ["Jumeirah Golf Estates","luxury",9,"v"],["The Villa","luxury",5,"v"],
+    ["Arabian Ranches","luxury",6,"v"],["Arabian Ranches 2","luxury",6.5,"v"],["Arabian Ranches 3","luxury",4.5,"v"],
+    ["Tilal Al Ghaf","luxury",8,"v"],["Damac Hills","luxury",4.5,"b"],["Nad Al Sheba","luxury",6,"v"],
+    ["Umm Suqeim","luxury",12,"v"],["Jumeirah","luxury",14,"v"],["Al Wasl","luxury",12,"v"],
+    ["City Walk","luxury",4.5,"a"],["Bluewaters","luxury",7,"a"],
+
+    ["Dubai Marina","standard",2.2,"a"],["JBR","standard",3,"a"],["Downtown Dubai","standard",2.8,"a"],
+    ["Business Bay","standard",1.8,"a"],["Dubai Hills Estate Apartments","standard",2.2,"a"],
+    ["Springs","standard",3.8,"v"],["The Greens","standard",1.4,"a"],["The Views","standard",2,"a"],
+    ["JVC","standard",1.1,"b"],["JVT","standard",1.6,"b"],["Al Furjan","standard",1.5,"b"],
+    ["Discovery Gardens","standard",0.75,"a"],["Motor City","standard",1.5,"b"],["Remraam","standard",0.9,"a"],
+    ["Town Square","standard",1.3,"b"],["Mudon","standard",2.8,"v"],["Serena","standard",2.6,"v"],
+    ["Mira","standard",2.8,"v"],["Reem","standard",2.6,"v"],["Damac Hills 2","standard",1.2,"v"],
+    ["Dubai Creek Harbour","standard",2.5,"a"],["Sobha Hartland","standard",2.4,"b"],
+    ["MBR City Apartments","standard",2.2,"a"],["The Valley","standard",2.8,"v"],["Mirdif","standard",2.2,"b"],
+    ["Living Legends","standard",1.8,"b"],["Dubai Silicon Oasis","standard",0.9,"a"],["Barsha South","standard",1.3,"a"]
+  ],
+  abudhabi: [
+    ["Hidd Al Saadiyat","ultra",18,"v"],["Jubail Island","ultra",15,"v"],["Saadiyat Beach Villas","ultra",16,"v"],
+
+    ["Saadiyat Island Apartments","luxury",3.5,"a"],["Al Raha Beach","luxury",3,"a"],
+    ["Al Zeina","luxury",3.5,"b"],["Al Bandar","luxury",3.5,"a"],["Al Raha Gardens","luxury",4.5,"v"],
+    ["Al Mushrif","luxury",8,"v"],["Al Bateen","luxury",9,"b"],
+
+    ["Al Reem Island","standard",1.8,"a"],["Yas Island","standard",2.2,"b"],["Khalifa City","standard",2.5,"v"],
+    ["Al Reef","standard",1.3,"b"],["Al Ghadeer","standard",0.9,"b"],["Masdar City","standard",1.4,"a"],
+    ["Mohammed Bin Zayed City","standard",2.2,"v"]
+  ]
+};
+const SEG = {}, AVGM = {}, TYPE = {};  // AVGM = average sale price in AED millions (ESTIMATES)
+// TYPE: v villas and townhouses, a apartments, b both
+for (const city in COMMUNITIES)
+  for (const [n,g,a,t] of COMMUNITIES[city]) { SEG[n]=g; AVGM[n]=a; TYPE[n]=t; }
+
+
+
+
+const state = { city:"dubai", type:"all", picked:[], mix:"An even split" };
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString("en-AE");
 const tier  = () => tierFor(state.picked.length || 1);
 const price = () => tier().price;
+// Leads are fixed per segment and summed across the chosen patches.
+const leadsFor = c => SEGMENTS[SEG[c]].leads;
+const leads = () => state.picked.reduce((n,c)=>n+leadsFor(c), 0);
+const MAXLEADS = SEGMENTS.standard.leads * MAX_COMMUNITIES;
+const segLabel = () => {
+  if(!state.picked.length) return "";
+  const g=[...new Set(state.picked.map(c=>SEG[c]))];
+  return g.length===1 ? SEGMENTS[g[0]].label : "Mixed";
+};
 const listNames = a => a.length<2 ? (a[0]||"") : a.slice(0,-1).join(", ")+" and "+a[a.length-1];
 
 /* ── hero aerial plan ───────────────────────────────────────── */
@@ -627,13 +804,14 @@ const listNames = a => a.length<2 ? (a[0]||"") : a.slice(0,-1).join(", ")+" and 
 /* ── static config into the page ────────────────────────────── */
 const waUrl = "https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent("Hi, I saw the "+CONFIG.brand+" page and I have a question about the community leads.");
 $("waFloat").href=waUrl; $("waFooter").href=waUrl;
+$("waAvail").href="https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent("Hi, I work a community that is not on the Patch list. Can you tell me if it is available?");
 
 /* ── tiers ──────────────────────────────────────────────────── */
 $("tiers").innerHTML = TIERS.map(t =>
   '<button class="tier" data-n="'+t.n+'" aria-pressed="'+(t.n===1)+'">'
   + '<div class="role">'+t.role+'</div>'
-  + '<span class="vol">'+t.vol+'</span><span class="vl">warm leads a month · '+t.note+'</span>'
-  + '<div class="cost">AED '+fmt(t.price)+' <span>per month</span></div></button>'
+  + '<span class="vol">AED '+fmt(t.price)+'</span><span class="vl">per month · '+t.note+'</span>'
+  + '<div class="cost" data-n="'+t.n+'">Volume set by your patches <span>combined across all '+t.n+'</span></div></button>'
 ).join("");
 if(TIERS.length===3) $("tiers").style.gridTemplateColumns = window.innerWidth>880 ? "repeat(3,1fr)" : "1fr";
 
@@ -651,12 +829,26 @@ $("tiers").addEventListener("click", e => {
 
 /* ── community chips ────────────────────────────────────────── */
 const chipsEl=$("chips"), searchEl=$("search");
+function renderPicked(){
+  const el=$("picked");
+  el.hidden = !state.picked.length;
+  if(el.hidden) return;
+  el.innerHTML = '<span class="picked-l">Covering</span>' + state.picked.map(c =>
+    '<button class="pk" data-x="'+c+'">'+c+' <span>'+leadsFor(c)+'</span><i>&times;</i></button>').join("");
+}
+$("picked").addEventListener("click", e => {
+  const b=e.target.closest("[data-x]"); if(!b) return;
+  state.picked.splice(state.picked.indexOf(b.dataset.x), 1);
+  renderChips(); sync();
+});
+
 function renderChips(){
   const q=searchEl.value.trim().toLowerCase();
-  const list=COMMUNITIES[state.city].filter(c=>c.toLowerCase().includes(q));
+  const list=COMMUNITIES[state.city].filter(([c,,,t]) =>
+    c.toLowerCase().includes(q) && (state.type==="all" || t===state.type || t==="b"));
   chipsEl.innerHTML = list.length
-    ? list.map(c=>'<button class="chip" aria-pressed="'+state.picked.includes(c)+'" data-c="'+c+'">'+c+'</button>').join("")
-    : '<p class="empty">No match. Message us on WhatsApp and we will tell you when we open it.</p>';
+    ? list.map(([c,g])=>'<button class="chip" data-g="'+g+'" aria-pressed="'+state.picked.includes(c)+'" data-c="'+c+'">'+c+'</button>').join("")
+    : '<p class="empty">Nothing here yet. Message us on WhatsApp and we will tell you when we open it.</p>';
 }
 chipsEl.addEventListener("click", e=>{
   const b=e.target.closest(".chip"); if(!b) return;
@@ -669,6 +861,11 @@ chipsEl.addEventListener("click", e=>{
   renderChips(); sync();
 });
 searchEl.addEventListener("input", renderChips);
+document.querySelectorAll(".types button").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".types button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  t.setAttribute("aria-pressed","true");
+  state.type=t.dataset.t; renderChips();
+}));
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected","false"));
   t.setAttribute("aria-selected","true");
@@ -683,42 +880,99 @@ document.querySelectorAll(".mix button").forEach(b=>b.addEventListener("click",(
 const nameEl=$("patchName");
 function sync(){
   const t=tier(), p=t.price, n=state.picked.length, base=TIERS[0];
+  const total=leads(), bt = n ? String(total) : "\u2014";
   const joined=listNames(state.picked);
   const label = n===0 ? "your community" : (joined.length<=34 ? joined : "your communities");
   if(nameEl.textContent!==label){
     nameEl.style.opacity=0;
     setTimeout(()=>{nameEl.textContent=label;nameEl.style.opacity=1;},170);
   }
-  $("heroVol").textContent  = n>1 ? t.vol : base.vol;
-  $("factVol").textContent  = n>1 ? t.vol : base.vol;
+  $("factVol").textContent  = n ? total : "Set by your patch";
+  $("gaugeN").textContent   = bt;
+  $("gaugeFill").style.width = (n ? Math.max(8, Math.min(100, total/MAXLEADS*100)) : 8)+"%";
+  const sg=$("gaugeSeg"); sg.hidden = !n; sg.textContent = segLabel();
   $("hdPrice").textContent  = "From AED "+fmt(base.price)+" a month";
   $("factPrice").textContent= "AED "+fmt(p);
-  $("barOurs").innerHTML    = "AED "+fmt(base.price)+"<small>per month, "+base.vol+" leads</small>";
+  $("barOurs").innerHTML    = "AED "+fmt(base.price)+"<small>per month, one community</small>";
   $("priceBig").textContent = "AED "+fmt(p);
   $("priceSub").textContent = "per month \u00B7 "+t.role.toLowerCase()+" \u00B7 cancel anytime";
 
-  const lo=+t.vol.split(" to ")[0], hi=+t.vol.split(" to ")[1];
-  $("inclVol").textContent="Between "+lo+" and "+hi+" warm buyer or seller leads a month";
+  const hi = total || 15;
+  $("inclVol").textContent = n ? total+" warm buyer or seller leads a month, every month" : "A fixed number of warm leads every month, set by your community";
   $("inclCom").textContent = n>1
     ? "All "+n+" of your communities covered, one agent each"
     : "One agent per community while you are subscribed";
-  $("perLead").textContent="That works out at AED "+fmt(Math.round(p/hi))+" to "+fmt(Math.round(p/lo))
-    +" for a named person who has told us they want to move. One deal covers the year twice over.";
+  $("perLead").textContent = !n
+    ? "Pick your community above and the exact number is set before you pay."
+    : hi <= 8
+      ? "That is AED "+fmt(Math.round(p/hi))+" per named owner who has told us they are open to moving. On a patch like this one instruction pays for the year many times over."
+      : "That works out at AED "+fmt(Math.round(p/hi))+" for a named person who has told us they want to move. One deal covers the year many times over.";
 
   document.querySelectorAll(".tier").forEach(x=>x.setAttribute("aria-pressed", +x.dataset.n===(n||1)));
 
   $("pickCount").textContent = n===0 ? "" : n+" of "+MAX_COMMUNITIES+" selected";
   $("pickHint").textContent = n===0
-    ? "Pick the community you work. Add up to three."
+    ? "Pick the community you work. Your number is set by how much that patch actually transacts."
     : n<MAX_COMMUNITIES
-      ? "Add another and you are on "+tierFor(n+1).role.toLowerCase()+", "+tierFor(n+1).vol+" leads for AED "+fmt(tierFor(n+1).price)+"."
-      : "Full coverage. Three communities, "+t.vol+" leads a month.";
+      ? "Add another community and you move to "+tierFor(n+1).role.toLowerCase()
+        +" at AED "+fmt(tierFor(n+1).price)+" a month."
+      : "Full coverage. Three communities on one subscription.";
 
+  renderPicked();
+  drawCalc();
   $("recap").innerHTML = n
-    ? t.vol+" warm leads a month across <b>"+joined+"</b>. "+state.mix+". AED "+fmt(p)+" a month."
+    ? total+" warm leads a month across <b>"+joined+"</b>. "+state.mix+". AED "+fmt(p)+" a month."
     : "Pick a community above to get started.";
 }
-renderChips(); sync();
+
+/* ── earnings calculator ────────────────────────────────────── */
+const calc = { conv:15, split:50, fee:2, touched:false };
+const money = n => n >= 1000000
+  ? "AED " + (n/1000000).toFixed(n/1000000 < 10 ? 2 : 1) + "M"
+  : "AED " + fmt(Math.round(n/1000)*1000);
+
+function drawCalc(){
+  const picked = state.picked.length;
+  // Rule of thumb: one deal out of each monthly batch, until they say otherwise.
+  if(picked && !calc.touched){
+    calc.conv = Math.min(60, Math.max(2, leads()));
+    $("conv").value = calc.conv;
+  }
+  $("convL").textContent  = "1 in " + calc.conv;
+  $("convNote").textContent = calc.touched
+    ? "Your own number."
+    : "One deal from each monthly batch of " + (picked ? leads() : 15) + ". Drag to set your own.";
+  $("splitL").textContent = calc.split + "%";
+  $("feeL").textContent   = calc.fee + "%";
+
+  const n = picked;
+  $("calcEmpty").hidden = !!n;
+  $("calcFilled").hidden = !n;
+  if(!n) return;
+
+  const perYear = leads() * 12;
+  const deals   = perYear / calc.conv;
+  // weight the average sale price by how many leads each patch contributes
+  const avg = state.picked.reduce((a,c)=>a + AVGM[c]*leadsFor(c), 0) / leads() * 1000000;
+  const comm = deals * avg * (calc.fee/100) * (calc.split/100);
+  const cost = price() * 12;
+
+  $("oLeads").textContent = perYear;
+  $("oDeals").textContent = deals < 1 ? deals.toFixed(1) : Math.round(deals*10)/10;
+  $("oPrice").textContent = money(avg);
+  $("oComm").textContent  = money(comm);
+  $("oCost").textContent  = "\u2212 " + money(cost);
+  $("oNet").textContent   = money(Math.max(0, comm - cost));
+  $("oMult").textContent  = comm > cost
+    ? "That is " + (comm/cost).toFixed(1) + " times what the subscription costs you."
+    : "At this conversion rate it does not pay for itself. Move the slider and see what you need to hit.";
+}
+
+["conv","split","fee"].forEach(id => $(id).addEventListener("input", e => {
+  calc[id] = +e.target.value;
+  if(id === "conv") calc.touched = true;
+  drawCalc();
+}));
 
 /* ── checkout ───────────────────────────────────────────────── */
 const err=$("err"), btn=$("submitBtn"), val=id=>$(id).value.trim();
@@ -730,7 +984,7 @@ function collect(){
     city:state.city==="dubai"?"Dubai":"Abu Dhabi",
     community:listNames(state.picked),communities:state.picked.slice(),
     tier:state.picked.length||1,mix:state.mix,priceAED:price(),
-    volume:tier().vol,ts:new Date().toISOString()};
+    volume:String(leads()),segment:segLabel(),ts:new Date().toISOString()};
 }
 
 function validate(d){
@@ -836,6 +1090,17 @@ addEventListener("keydown", e=>{ if(e.key==="Escape" && sheet.classList.contains
 function reset(){ opening=false; btn.disabled=false; btn.textContent="Continue to payment"; }
 function fail(m){ err.textContent=m; err.style.display="block"; reset(); }
 
+/* ── in page navigation, without relying on hash links ──────── */
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-goto]");
+  if(!t) return;
+  e.preventDefault();
+  const el = $(t.dataset.goto);
+  if(!el) return;
+  el.scrollIntoView({ behavior:"smooth", block:"start" });
+  if(t.dataset.goto === "start") setTimeout(() => $("fname").focus({preventScroll:true}), 600);
+});
+
 /* ── scroll behaviour ───────────────────────────────────────── */
 const hdr=$("hdr");
 addEventListener("scroll",()=>hdr.classList.toggle("solid",scrollY>60),{passive:true});
@@ -850,6 +1115,9 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{
   io.unobserve(e.target);
 }),{threshold:.15,rootMargin:"0px 0px -40px 0px"});
 document.querySelectorAll(".reveal").forEach((el,i)=>{el.style.transitionDelay=(i%3)*70+"ms";io.observe(el);});
+
+/* first paint, once every helper above exists */
+renderChips(); sync();
 </script>
 </body>
 </html>
