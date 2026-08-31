@@ -170,7 +170,7 @@ function showGate(){ $("gate").hidden = false; $("app").hidden = true; }
 function render(){
   $("gate").hidden = true; $("app").hidden = false;
   const many = (AGENT.communities || []).length > 1;
-  $("who").textContent = AGENT.community;
+  $("who").textContent = AGENT.community + (AGENT.telegramConnected ? "  \u2022  Telegram connected" : "");
   $("hi").textContent = "Morning, " + AGENT.firstName + ".";
   $("plan").textContent = AGENT.volume + " warm leads a month "
     + (many ? "across " : "in ") + AGENT.community
@@ -275,6 +275,23 @@ $("sendLink").addEventListener("click", async () => {
   }catch(e){}
   $("gateMsg").textContent = "If that email is on a subscription, your link is on its way to Telegram.";
   $("sendLink").disabled = false;
+});
+
+// After they tap connect, watch for the binding and update without a refresh.
+$("tglink").addEventListener("click", () => {
+  let tries = 0;
+  const poll = setInterval(async () => {
+    if (++tries > 40) return clearInterval(poll);
+    try{
+      const r = await fetch(API+"/me", { headers:{ Authorization:"Bearer "+TOKEN } });
+      if(!r.ok) return;
+      const d = await r.json();
+      if(d.agent.telegramConnected){
+        clearInterval(poll);
+        AGENT = d.agent; LEADS = d.leads; render();
+      }
+    }catch(e){}
+  }, 3000);
 });
 
 load();
