@@ -340,6 +340,20 @@ app.get("/admin/leads", admin, (_req, res) => {
     FROM leads l JOIN agents a ON a.id=l.agent_id ORDER BY l.created_at DESC LIMIT 200`).all());
 });
 
+/* Mint a fresh dashboard link for any agent. */
+app.get("/admin/login/:id", admin, (req, res) => {
+  const a = db.prepare("SELECT * FROM agents WHERE id=?").get(Number(req.params.id));
+  if (!a) return res.status(404).json({ error: "unknown agent" });
+  const token = rid(20);
+  db.prepare("INSERT INTO sessions (token, agent_id, expires) VALUES (?,?,datetime('now','+90 days'))")
+    .run(token, a.id);
+  res.json({
+    url: `${PUBLIC_URL}/dashboard.html#${token}`,
+    telegramLink: TELEGRAM_BOT_USERNAME ? `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${a.link_token}` : "",
+    name: `${a.first_name} ${a.last_name}`
+  });
+});
+
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.listen(PORT, async () => {
   console.log(`Patch API on ${PORT}`);
