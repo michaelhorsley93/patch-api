@@ -176,7 +176,8 @@ function drawAgents(){
       + esc(a.first_name+" "+a.last_name)
       + (cs.length>1 ? ' <span class="pill p-new">'+cs.length+' communities</span>' : "") + "</div>"
       + '<div class="sub">'+esc(a.community)+" · "+esc(a.mix)+"</div></div>"
-      + '<div class="prog">'+a.this_month+" / "+target+"<br><small>this month</small></div></div>";
+      + '<div class="prog">'+a.this_month+" / "+target+"<br><small>this month</small></div>"
+      + '<button class="btn btn-ghost lnk" data-id="'+a.id+'">Dashboard link</button></div>";
   }).join("") : '<div class="card empty">No subscribers yet.</div>';
 }
 
@@ -196,6 +197,18 @@ async function drawFeed(){
 }
 
 $("agent").addEventListener("change", drawCommunities);
+
+$("agents").addEventListener("click", async e => {
+  const b = e.target.closest(".lnk"); if(!b) return;
+  b.disabled = true; const label = b.textContent; b.textContent = "Opening";
+  try{
+    const r = await fetch(API+"/admin/login/"+b.dataset.id, { headers: hdr() });
+    const d = await r.json();
+    if(!r.ok || !d.url) throw new Error(d.error || "failed");
+    window.open(d.url, "_blank");
+  }catch(err){ alert("Could not create a dashboard link. "+err.message); }
+  b.disabled = false; b.textContent = label;
+});
 
 $("go").addEventListener("click", () => { KEY = $("key").value.trim(); boot(); });
 $("key").addEventListener("keydown", e => { if(e.key === "Enter") $("go").click(); });
