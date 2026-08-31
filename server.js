@@ -341,4 +341,24 @@ app.get("/admin/leads", admin, (_req, res) => {
 });
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
-app.listen(PORT, () => console.log(`Patch API on ${PORT}`));
+app.listen(PORT, async () => {
+  console.log(`Patch API on ${PORT}`);
+  // Register the Telegram webhook with ourselves on boot, so the token
+  // never has to be pasted into a URL by hand.
+  if (!TELEGRAM_TOKEN) return console.log("Telegram: no token set, webhook not registered");
+  if (!PUBLIC_URL)     return console.log("Telegram: no PUBLIC_URL set, webhook not registered");
+  if (!/^\d+:[A-Za-z0-9_-]{20,}$/.test(TELEGRAM_TOKEN))
+    return console.error("Telegram: TELEGRAM_TOKEN does not look like a bot token. Expected 123456:AA... but got something else.");
+  try {
+    const hook = `${PUBLIC_URL}/telegram/webhook`;
+    const r = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/setWebhook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: hook })
+    });
+    const j = await r.json();
+    console.log(j.ok ? `Telegram: webhook registered at ${hook}` : `Telegram: webhook failed - ${j.description}`);
+  } catch (e) {
+    console.error("Telegram: webhook registration error -", e.message);
+  }
+});
