@@ -485,7 +485,7 @@ app.get("/admin/analytics", admin, (_req, res) => {
   });
 });
 
-app.get("/admin/analytics.html", admin, (_req, res) => {
+app.get("/admin/analytics.html", (_req, res) => {
   res.type("html").send(fs.readFileSync(path.join(__dirname, "analytics.html"), "utf8"));
 });
 
