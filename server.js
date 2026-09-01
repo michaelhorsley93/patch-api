@@ -63,11 +63,33 @@ CREATE TABLE IF NOT EXISTS leads (
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY, agent_id INTEGER, expires TEXT
 );
+CREATE TABLE IF NOT EXISTS events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  session_id TEXT,
+  ip TEXT,
+  ua TEXT,
+  ref TEXT,
+  meta TEXT,
+  created_at TEXT DEFAULT (datetime('now'))
+);
 CREATE INDEX IF NOT EXISTS leads_agent ON leads(agent_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS events_name_at ON events(name, created_at DESC);
 `);
 
 const rid = (n = 24) => crypto.randomBytes(n).toString("base64url");
 const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+function track(name, req, meta = {}) {
+  try {
+    const ip = (req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "").split(",")[0].trim().slice(0, 60);
+    const ua = String(req.headers["user-agent"] || "").slice(0, 300);
+    const ref = String(req.headers["referer"] || req.body?.ref || "").slice(0, 300);
+    const session_id = String(req.headers["x-session"] || req.body?.session || "").slice(0, 64);
+    db.prepare("INSERT INTO events (name,session_id,ip,ua,ref,meta) VALUES (?,?,?,?,?,?)")
+      .run(name, session_id, ip, ua, ref, JSON.stringify(meta));
+  } catch(e) { /* never block a request over analytics */ }
+}
 
 /* ══ telegram ══════════════════════════════════════════════════ */
 async function tg(chatId, text, buttons) {
@@ -122,10 +144,16 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req, res)
   if (event.type === "checkout.session.completed") {
     const agent = upsertAgent(event.data.object);
     if (agent) notifyAdmin(agent);
+    const m = event.data.object.metadata || {};
+    db.prepare("INSERT INTO events (name,meta) VALUES (?,?)").run("subscription_created",
+      JSON.stringify({ community: m.community, tier: m.tier, email: m.email, price_aed: m.priceAED }));
   }
   if (event.type === "customer.subscription.deleted") {
-    db.prepare("UPDATE agents SET status='cancelled' WHERE stripe_subscription=?")
-      .run(event.data.object.id);
+    const sub = event.data.object.id;
+    db.prepare("UPDATE agents SET status='cancelled' WHERE stripe_subscription=?").run(sub);
+    const m = event.data.object.metadata || {};
+    db.prepare("INSERT INTO events (name,meta) VALUES (?,?)").run("subscription_cancelled",
+      JSON.stringify({ stripe_subscription: sub, community: m.community, email: m.email }));
   }
 });
 
@@ -135,6 +163,15 @@ app.get("/", page("index.html"));
 app.get("/index.html", page("index.html"));
 app.get("/dashboard.html", page("dashboard.html"));
 app.get("/admin.html", page("admin.html"));
+
+/* ── analytics tracking (client fires these) ──────────────────── */
+app.post("/track", (req, res) => {
+  const allowed = ["page_view", "checkout_started", "checkout_abandoned", "plan_selected"];
+  const name = String(req.body?.name || "");
+  if (!allowed.includes(name)) return res.status(400).json({ error: "unknown event" });
+  track(name, req, req.body?.meta || {});
+  res.json({ ok: true });
+});
 
 /* ── checkout ─────────────────────────────────────────────────── */
 app.post("/create-checkout-session", async (req, res) => {
@@ -162,6 +199,7 @@ app.post("/create-checkout-session", async (req, res) => {
       client_reference_id: `${metadata.community}`.replace(/\s+/g, "-").slice(0, 190),
       metadata, subscription_data: { metadata }
     });
+    track("checkout_initiated", req, { tier, community: b.community, email: b.email, stripe_session: session.id });
     res.json({ clientSecret: session.client_secret });
   } catch (e) {
     console.error("Session create failed:", e.type || "", e.message);
@@ -352,6 +390,103 @@ app.get("/admin/login/:id", admin, (req, res) => {
     telegramLink: TELEGRAM_BOT_USERNAME ? `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${a.link_token}` : "",
     name: `${a.first_name} ${a.last_name}`
   });
+});
+
+app.get("/admin/analytics", admin, (_req, res) => {
+  const days = n => `datetime('now','-${n} days')`;
+
+  // funnel counts (last 30 days)
+  const ev = name => db.prepare(
+    `SELECT COUNT(*) AS c FROM events WHERE name=? AND created_at >= ${days(30)}`
+  ).get(name).c;
+
+  const pageViews      = ev("page_view");
+  const planSelected   = ev("plan_selected");
+  const checkoutInit   = ev("checkout_initiated");
+  const checkoutStart  = ev("checkout_started");
+  const subscriptions  = ev("subscription_created");
+
+  // unique visitors (by session_id, last 30 days)
+  const uniqueVisitors = db.prepare(
+    `SELECT COUNT(DISTINCT CASE WHEN session_id!='' THEN session_id ELSE ip END) AS c
+     FROM events WHERE name='page_view' AND created_at >= ${days(30)}`
+  ).get().c;
+
+  // abandoned = initiated checkout but no subscription created within 2 hours (approx)
+  const abandoned = db.prepare(`
+    SELECT COUNT(DISTINCT json_extract(meta,'$.email')) AS c FROM events
+    WHERE name='checkout_initiated' AND created_at >= ${days(30)}
+    AND json_extract(meta,'$.email') NOT IN (
+      SELECT json_extract(meta,'$.email') FROM events
+      WHERE name='subscription_created' AND created_at >= ${days(32)}
+    )
+  `).get().c;
+
+  // active subscribers + MRR
+  const agents = db.prepare("SELECT * FROM agents WHERE status='active'").all();
+  const mrr    = agents.reduce((s, a) => s + (a.price_aed || 0), 0);
+
+  // new this month
+  const newThisMonth = db.prepare(
+    `SELECT COUNT(*) AS c FROM agents WHERE status='active' AND created_at >= date('now','start of month')`
+  ).get().c;
+
+  // churn this month
+  const churnThisMonth = db.prepare(
+    `SELECT COUNT(*) AS c FROM events WHERE name='subscription_cancelled'
+     AND created_at >= date('now','start of month')`
+  ).get().c;
+
+  // leads this month
+  const leadsThisMonth = db.prepare(
+    `SELECT COUNT(*) AS c FROM leads WHERE created_at >= date('now','start of month')`
+  ).get().c;
+  const leadsDelivered = db.prepare(
+    `SELECT COUNT(*) AS c FROM leads WHERE delivered=1 AND created_at >= date('now','start of month')`
+  ).get().c;
+
+  // community breakdown
+  const communityBreakdown = db.prepare(
+    `SELECT community, COUNT(*) AS count FROM agents WHERE status='active' GROUP BY community ORDER BY count DESC`
+  ).all();
+
+  // page views last 14 days (daily)
+  const dailyViews = db.prepare(`
+    SELECT date(created_at) AS day, COUNT(*) AS views,
+           COUNT(DISTINCT CASE WHEN session_id!='' THEN session_id ELSE ip END) AS uniq
+    FROM events WHERE name='page_view' AND created_at >= ${days(14)}
+    GROUP BY day ORDER BY day ASC
+  `).all();
+
+  // recent signups
+  const recentSignups = db.prepare(
+    `SELECT first_name, last_name, email, community, desks, price_aed, created_at
+     FROM agents WHERE status='active' ORDER BY created_at DESC LIMIT 10`
+  ).all();
+
+  // top referrers (last 30 days)
+  const topRefs = db.prepare(`
+    SELECT CASE WHEN ref='' THEN 'Direct' ELSE ref END AS source, COUNT(*) AS visits
+    FROM events WHERE name='page_view' AND created_at >= ${days(30)}
+    GROUP BY source ORDER BY visits DESC LIMIT 10
+  `).all();
+
+  // agents without Telegram
+  const noTelegram = db.prepare(
+    `SELECT COUNT(*) AS c FROM agents WHERE status='active' AND (telegram_chat_id IS NULL OR telegram_chat_id='')`
+  ).get().c;
+
+  res.json({
+    funnel: { pageViews, uniqueVisitors, planSelected, checkoutInit, checkoutStart, subscriptions, abandoned },
+    subscribers: { active: agents.length, mrr, newThisMonth, churnThisMonth, noTelegram },
+    leads: { thisMonth: leadsThisMonth, delivered: leadsDelivered },
+    communityBreakdown, dailyViews, recentSignups, topRefs,
+    generatedAt: new Date().toISOString()
+  });
+});
+
+app.get("/admin/analytics.html", admin, (_req, res) => {
+  res.type("html").send(fs.readFileSync(path.join(__dirname, "analytics.html"), "utf8"));
 });
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
