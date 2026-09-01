@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Patch · Analytics</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--deep:#04222C;--deep-2:#083344;--aqua:#2ECFBB;--aqua-2:#1BA495;--sand:#E6D8BE;
+--paper:#F5F7F6;--surface:#FFF;--ink:#08191F;--ink-2:#42565C;--ink-3:#7B8D92;--line:#DFE5E4;--r:14px;--r-sm:9px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Manrope',system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:'Sora',sans-serif;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+h1{font-size:26px}h2{font-size:18px;margin-bottom:16px}h3{font-size:15px}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.topbar{background:var(--deep);color:#fff;padding:16px 0}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.05em;display:flex;align-items:center;gap:8px}
+.logo i{width:8px;height:8px;border-radius:50%;background:var(--aqua)}
+.topbar-links{display:flex;gap:20px}
+.topbar-links a{color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;font-weight:500}
+.topbar-links a:hover{color:#fff}
+.topbar-links a.active{color:var(--aqua)}
+.main{padding:32px 0 60px}
+.section{margin-bottom:36px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}}
+.stat{padding:20px 22px}
+.stat-label{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
+.stat-val{font-family:'Sora',sans-serif;font-size:36px;font-weight:800;line-height:1;letter-spacing:-.04em;color:var(--ink)}
+.stat-sub{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+.stat-val.green{color:#1a8c5e}
+.stat-val.amber{color:#c47a1a}
+.stat-val.red{color:#c43a3a}
+.funnel{display:flex;flex-direction:column;gap:10px;padding:20px 0 4px}
+.funnel-row{display:flex;align-items:center;gap:12px}
+.funnel-label{font-size:13px;color:var(--ink-2);width:160px;flex-shrink:0}
+.funnel-bar-wrap{flex:1;background:var(--paper);border-radius:100px;height:10px;overflow:hidden}
+.funnel-bar{height:100%;background:var(--aqua);border-radius:100px;transition:.5s ease}
+.funnel-n{font-size:13px;font-weight:600;color:var(--ink);width:44px;text-align:right;flex-shrink:0}
+.funnel-pct{font-size:11.5px;color:var(--ink-3);width:40px;flex-shrink:0}
+.chart-wrap{position:relative;height:160px;display:flex;align-items:flex-end;gap:4px;padding-top:16px}
+.bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px;min-width:0}
+.bar-col .bar{width:100%;background:var(--aqua);border-radius:4px 4px 0 0;transition:.4s}
+.bar-col .bar.secondary{background:#D4F5F0}
+.bar-col .day-label{font-size:9.5px;color:var(--ink-3);white-space:nowrap}
+.bar-col .bar-val{font-size:9px;color:var(--ink-3)}
+.table{width:100%;border-collapse:collapse}
+.table th{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);padding:0 12px 10px;text-align:left;border-bottom:1px solid var(--line)}
+.table td{padding:11px 12px;border-bottom:1px solid var(--paper);font-size:13.5px;vertical-align:top}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:var(--paper)}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:100px}
+.p-active{background:#E1F5E4;color:#2A6B36}
+.badge-num{font-family:'Sora',sans-serif;font-weight:700}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--deep)}
+.login-box{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:380px}
+.login-box h2{margin-bottom:6px;font-size:22px}
+.login-box p{color:var(--ink-3);font-size:14px;margin-bottom:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.field input{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:var(--r-sm);font-family:'Manrope',sans-serif;font-size:15px;color:var(--ink)}
+.field input:focus{border-color:var(--aqua-2);outline:none;box-shadow:0 0 0 3px rgba(46,207,187,.15)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--aqua);color:var(--deep);border:0;padding:13px 22px;border-radius:100px;font-family:'Manrope',sans-serif;font-size:14.5px;font-weight:700;cursor:pointer;width:100%;transition:.18s}
+.btn:hover{background:#43E0CB}
+.err{color:#c43a3a;font-size:13px;margin-top:10px;text-align:center}
+.tag{font-size:11px;font-weight:600;color:var(--ink-3);background:var(--paper);border-radius:6px;padding:2px 7px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-head h2{margin-bottom:0}
+.refresh-note{font-size:12px;color:var(--ink-3)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.dot.green{background:#2a8c5e}.dot.red{background:#c43a3a}.dot.amber{background:#c47a1a}
+.warn-box{background:#FDF1E9;border:1px solid #F3D5C0;border-radius:var(--r-sm);padding:14px 16px;font-size:13.5px;color:#9A4E20;margin-bottom:20px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-wrap" style="display:none">
+  <div class="login-box">
+    <div class="logo" style="margin-bottom:24px;color:var(--deep)"><i></i>patch</div>
+    <h2>Analytics</h2>
+    <p>Enter your admin key to continue</p>
+    <div class="field">
+      <label>Admin key</label>
+      <input type="password" id="key-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn" onclick="doLogin()">Sign in</button>
+    <p class="err" id="login-err"></p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none">
+  <div class="topbar">
+    <div class="wrap">
+      <div class="logo"><i></i>patch</div>
+      <div class="topbar-links">
+        <a href="/admin.html">Agents</a>
+        <a href="/admin/analytics.html" class="active">Analytics</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="wrap">
+
+      <!-- HEADER -->
+      <div class="section-head" style="margin-bottom:28px">
+        <h1>Analytics</h1>
+        <span class="refresh-note" id="generated-at"></span>
+      </div>
+
+      <!-- SUBSCRIBERS -->
+      <div class="section">
+        <h2>Subscribers</h2>
+        <div class="grid-4">
+          <div class="card stat">
+            <div class="stat-label">Active subscribers</div>
+            <div class="stat-val green" id="s-active">—</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">MRR</div>
+            <div class="stat-val" id="s-mrr">—</div>
+            <div class="stat-sub">AED / month</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">New this month</div>
+            <div class="stat-val" id="s-new">—</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">Churned this month</div>
+            <div class="stat-val red" id="s-churn">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNNEL -->
+      <div class="section">
+        <div class="grid-2">
+          <div class="card">
+            <h2>Visitor funnel <span class="tag">last 30 days</span></h2>
+            <div class="funnel" id="funnel-rows"></div>
+          </div>
+          <div class="card">
+            <h2>Page views <span class="tag">last 14 days</span></h2>
+            <div class="chart-wrap" id="chart-bars"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEADS + ALERTS -->
+      <div class="section">
+        <div class="grid-3">
+          <div class="card stat">
+            <div class="stat-label">Leads sent this month</div>
+            <div class="stat-val" id="l-total">—</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">Delivered via Telegram</div>
+            <div class="stat-val green" id="l-delivered">—</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-label">No Telegram connected</div>
+            <div class="stat-val amber" id="s-notg">—</div>
+            <div class="stat-sub">agents at risk</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMMUNITY BREAKDOWN + RECENT SIGNUPS -->
+      <div class="section">
+        <div class="grid-2">
+          <div class="card">
+            <h2>Communities</h2>
+            <table class="table" id="community-table">
+              <thead><tr><th>Community</th><th>Subscribers</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h2>Recent signups</h2>
+            <table class="table" id="signups-table">
+              <thead><tr><th>Name</th><th>Community</th><th>AED/mo</th><th>Signed up</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REFERRERS -->
+      <div class="section">
+        <div class="card">
+          <h2>Top referrers <span class="tag">last 30 days</span></h2>
+          <table class="table" id="refs-table">
+            <thead><tr><th>Source</th><th>Visits</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:14px">
+            Referrer tracking only captures visits where the browser sends a Referer header.
+            Most traffic from WhatsApp and Telegram will show as Direct.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "";
+let adminKey = "";
+
+function fmtAED(n) {
+  return "AED " + Number(n).toLocaleString();
+}
+function fmtDate(s) {
+  if (!s) return "—";
+  return new Date(s + "Z").toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+}
+function pct(a, b) {
+  if (!b) return "—";
+  return Math.round((a / b) * 100) + "%";
+}
+
+async function doLogin() {
+  const k = document.getElementById("key-input").value.trim();
+  if (!k) return;
+  const r = await fetch("/admin/analytics", { headers: { "X-Admin-Key": k } });
+  if (!r.ok) { document.getElementById("login-err").textContent = "Wrong key"; return; }
+  adminKey = k;
+  localStorage.setItem("patch_admin_key", k);
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  const data = await r.json();
+  render(data);
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && document.getElementById("login-screen").style.display !== "none") doLogin();
+});
+
+async function loadDashboard(key) {
+  const r = await fetch("/admin/analytics", { headers: { "X-Admin-Key": key } });
+  if (!r.ok) { showLogin(); return; }
+  adminKey = key;
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  const data = await r.json();
+  render(data);
+}
+
+function showLogin() {
+  document.getElementById("login-screen").style.display = "flex";
+}
+
+function render(d) {
+  // generated at
+  const ga = new Date(d.generatedAt);
+  document.getElementById("generated-at").textContent =
+    "Updated " + ga.toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" });
+
+  // subscribers
+  document.getElementById("s-active").textContent = d.subscribers.active;
+  document.getElementById("s-mrr").textContent = fmtAED(d.subscribers.mrr);
+  document.getElementById("s-new").textContent = d.subscribers.newThisMonth;
+  document.getElementById("s-churn").textContent = d.subscribers.churnThisMonth;
+  document.getElementById("s-notg").textContent = d.subscribers.noTelegram;
+
+  // leads
+  document.getElementById("l-total").textContent = d.leads.thisMonth;
+  document.getElementById("l-delivered").textContent = d.leads.delivered;
+
+  // funnel
+  const f = d.funnel;
+  const steps = [
+    { label: "Page views",         n: f.pageViews,     base: f.pageViews },
+    { label: "Unique visitors",    n: f.uniqueVisitors, base: f.pageViews },
+    { label: "Plan selected",      n: f.planSelected,  base: f.pageViews },
+    { label: "Checkout opened",    n: f.checkoutInit,  base: f.pageViews },
+    { label: "Abandoned",          n: f.abandoned,     base: f.checkoutInit, warn: true },
+    { label: "Completed",          n: f.subscriptions, base: f.checkoutInit },
+  ];
+  const funnelEl = document.getElementById("funnel-rows");
+  funnelEl.innerHTML = "";
+  steps.forEach(s => {
+    const ratio = s.base ? s.n / s.base : 0;
+    const barW = Math.round(ratio * 100);
+    const row = document.createElement("div");
+    row.className = "funnel-row";
+    row.innerHTML = `
+      <span class="funnel-label">${s.label}</span>
+      <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${barW}%;${s.warn ? 'background:#F5A623' : ''}"></div></div>
+      <span class="funnel-n badge-num">${s.n}</span>
+      <span class="funnel-pct">${s.base === f.pageViews || !s.base ? pct(s.n, f.pageViews) : pct(s.n, s.base)}</span>
+    `;
+    funnelEl.appendChild(row);
+  });
+
+  // daily chart
+  const views = d.dailyViews;
+  const maxV = Math.max(...views.map(v => v.views), 1);
+  const chartEl = document.getElementById("chart-bars");
+  chartEl.innerHTML = "";
+  views.forEach(v => {
+    const h = Math.round((v.views / maxV) * 130);
+    const h2 = Math.round((v.uniq / maxV) * 130);
+    const day = v.day.slice(5); // MM-DD
+    const col = document.createElement("div");
+    col.className = "bar-col";
+    col.innerHTML = `
+      <span class="bar-val">${v.views}</span>
+      <div style="display:flex;align-items:flex-end;gap:2px;width:100%">
+        <div class="bar" style="height:${h}px;flex:1" title="Views: ${v.views}"></div>
+        <div class="bar secondary" style="height:${h2}px;flex:1" title="Unique: ${v.uniq}"></div>
+      </div>
+      <span class="day-label">${day}</span>
+    `;
+    chartEl.appendChild(col);
+  });
+
+  // community table
+  const ctBody = document.querySelector("#community-table tbody");
+  ctBody.innerHTML = "";
+  d.communityBreakdown.forEach(c => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${c.community}</td><td><span class="badge-num">${c.count}</span></td>`;
+    ctBody.appendChild(tr);
+  });
+
+  // recent signups
+  const stBody = document.querySelector("#signups-table tbody");
+  stBody.innerHTML = "";
+  d.recentSignups.forEach(a => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${a.first_name} ${a.last_name}</td>
+      <td style="font-size:12.5px;color:var(--ink-2)">${a.community}</td>
+      <td><span class="badge-num">${a.price_aed ? fmtAED(a.price_aed) : "—"}</span></td>
+      <td style="font-size:12px;color:var(--ink-3)">${fmtDate(a.created_at)}</td>
+    `;
+    stBody.appendChild(tr);
+  });
+
+  // referrers
+  const rBody = document.querySelector("#refs-table tbody");
+  rBody.innerHTML = "";
+  d.topRefs.forEach(r => {
+    const tr = document.createElement("tr");
+    let src = r.source;
+    try { src = new URL(src).hostname; } catch(e) {}
+    tr.innerHTML = `<td style="font-size:13px">${src}</td><td><span class="badge-num">${r.visits}</span></td>`;
+    rBody.appendChild(tr);
+  });
+}
+
+// init
+(async () => {
+  const saved = localStorage.getItem("patch_admin_key");
+  if (saved) {
+    await loadDashboard(saved);
+  } else {
+    showLogin();
+  }
+})();
+</script>
+</body>
+</html>
