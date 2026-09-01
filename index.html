@@ -1123,6 +1123,49 @@ document.querySelectorAll(".reveal").forEach((el,i)=>{el.style.transitionDelay=(
 
 /* first paint, once every helper above exists */
 renderChips(); sync();
+
+/* ── analytics tracking ─────────────────────────────────────── */
+(function(){
+  // generate or retrieve a session id for this browser session
+  let sid = sessionStorage.getItem("_psid");
+  if(!sid){ sid = Math.random().toString(36).slice(2)+Date.now().toString(36); sessionStorage.setItem("_psid", sid); }
+
+  function track(name, meta){
+    try{
+      fetch((CONFIG.apiBase||"")+"/track",{
+        method:"POST", headers:{"Content-Type":"application/json","X-Session":sid},
+        body: JSON.stringify({name, meta, session: sid})
+      }).catch(()=>{});
+    }catch(e){}
+  }
+
+  // page view on load
+  track("page_view", { path: location.pathname, ref: document.referrer });
+
+  // plan selected when a tier card is clicked
+  document.addEventListener("click", e=>{
+    const tierEl = e.target.closest(".tier");
+    if(tierEl){
+      const n = parseInt(tierEl.dataset.n || tierEl.dataset.tier || 0);
+      if(n) track("plan_selected", { tier: n });
+    }
+  });
+
+  // checkout started when the sheet opens
+  const origOpen = openSheet;
+  window.openSheet = function(d){
+    track("checkout_started", { tier: d.tier, community: d.community });
+    origOpen(d);
+  };
+
+  // abandoned when sheet closes without completing
+  window.addEventListener("beforeunload", ()=>{
+    const sheet = document.getElementById("sheet");
+    if(sheet && sheet.classList.contains("open")){
+      track("checkout_abandoned", {});
+    }
+  });
+})();
 </script>
 </body>
 </html>
