@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sign in · Patch</title>
+<style>
+  :root {
+    --ink: #0d1b1a;
+    --deep: #0b2a2a;
+    --mint: #6ec9b0;
+    --mint-dark: #4fae94;
+    --page: #f4f4f2;
+    --muted: #6b7a78;
+    --line: #e2e5e3;
+    --error: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font: 400 16px/1.5 "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  header {
+    background: var(--deep);
+    padding: 22px 32px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  header span { width: 9px; height: 9px; border-radius: 50%; background: var(--mint); }
+  header strong { color: #fff; font-size: 22px; letter-spacing: -0.01em; }
+  main { display: flex; justify-content: center; padding: 72px 20px 40px; }
+  .card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 1px 3px rgba(13, 27, 26, 0.06);
+  }
+  h1 { margin: 0 0 10px; font-size: 30px; letter-spacing: -0.02em; }
+  .lede { margin: 0 0 28px; color: var(--muted); }
+  label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  input {
+    width: 100%;
+    padding: 15px 16px;
+    font: inherit;
+    color: var(--ink);
+    background: #eef2f6;
+    border: 1px solid transparent;
+    border-radius: 12px;
+  }
+  input:focus { outline: 2px solid var(--mint-dark); outline-offset: 2px; }
+  .field { margin-bottom: 18px; }
+  button {
+    width: 100%;
+    margin-top: 6px;
+    padding: 17px;
+    font: 600 17px/1 inherit;
+    color: var(--ink);
+    background: var(--mint);
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  button:hover { background: var(--mint-dark); }
+  button:disabled { opacity: 0.55; cursor: default; }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--deep); outline-offset: 3px; }
+  .row { display: flex; justify-content: flex-end; margin-top: 18px; }
+  a { color: var(--deep); font-size: 15px; }
+  .msg { margin-top: 20px; font-size: 15px; color: var(--muted); }
+  .msg[data-tone="error"] { color: var(--error); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+  <header><span></span><strong>Patch</strong></header>
+
+  <main>
+    <div class="card">
+      <div id="signin">
+        <h1>Sign in</h1>
+        <p class="lede">Use the email on your subscription.</p>
+
+        <div class="field">
+          <label for="email">EMAIL</label>
+          <input id="email" type="email" autocomplete="username" inputmode="email" autofocus>
+        </div>
+        <div class="field">
+          <label for="password">PASSWORD</label>
+          <input id="password" type="password" autocomplete="current-password">
+        </div>
+
+        <button id="signinBtn">Sign in</button>
+        <div class="row"><a href="#" id="toForgot">Forgot password?</a></div>
+        <p class="msg hidden" id="signinMsg"></p>
+      </div>
+
+      <div id="forgot" class="hidden">
+        <h1>Reset password</h1>
+        <p class="lede">Enter your email and we send you a link to set a new password.</p>
+
+        <div class="field">
+          <label for="forgotEmail">EMAIL</label>
+          <input id="forgotEmail" type="email" autocomplete="username" inputmode="email">
+        </div>
+
+        <button id="forgotBtn">Send reset link</button>
+        <div class="row"><a href="#" id="toSignin">Back to sign in</a></div>
+        <p class="msg hidden" id="forgotMsg"></p>
+      </div>
+    </div>
+  </main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const nextUrl = params.get('next');
+
+  function show(el, text, tone) {
+    el.textContent = text;
+    el.dataset.tone = tone || 'info';
+    el.classList.remove('hidden');
+  }
+
+  function swap(showForgot) {
+    $('signin').classList.toggle('hidden', showForgot);
+    $('forgot').classList.toggle('hidden', !showForgot);
+    if (showForgot) {
+      $('forgotEmail').value = $('email').value;
+      $('forgotEmail').focus();
+    } else {
+      $('email').focus();
+    }
+  }
+
+  $('toForgot').onclick = (e) => { e.preventDefault(); swap(true); };
+  $('toSignin').onclick = (e) => { e.preventDefault(); swap(false); };
+
+  async function signIn() {
+    const email = $('email').value.trim();
+    const password = $('password').value;
+    if (!email || !password) return show($('signinMsg'), 'Enter your email and password.', 'error');
+
+    $('signinBtn').disabled = true;
+    $('signinBtn').textContent = 'Signing in';
+    try {
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Sign in failed.');
+      location.href = nextUrl || data.next || '/dashboard.html';
+    } catch (err) {
+      show($('signinMsg'), err.message, 'error');
+      $('signinBtn').disabled = false;
+      $('signinBtn').textContent = 'Sign in';
+    }
+  }
+
+  async function sendReset() {
+    const email = $('forgotEmail').value.trim();
+    if (!email) return show($('forgotMsg'), 'Enter your email first.', 'error');
+
+    $('forgotBtn').disabled = true;
+    try {
+      await fetch('/auth/forgot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      show($('forgotMsg'), 'If that email is on a subscription, a reset link is on its way. It works for one hour.');
+    } catch {
+      show($('forgotMsg'), 'Something went wrong. Try again in a moment.', 'error');
+      $('forgotBtn').disabled = false;
+    }
+  }
+
+  $('signinBtn').onclick = signIn;
+  $('forgotBtn').onclick = sendReset;
+  $('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') signIn(); });
+  $('email').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('password').focus(); });
+  $('forgotEmail').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendReset(); });
+</script>
+</body>
+</html>
