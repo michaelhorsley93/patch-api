@@ -1,0 +1,171 @@
+line one
+line two
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Set password · Patch</title>
+<style>
+  :root {
+    --ink: #0d1b1a;
+    --deep: #0b2a2a;
+    --mint: #6ec9b0;
+    --mint-dark: #4fae94;
+    --page: #f4f4f2;
+    --muted: #6b7a78;
+    --error: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font: 400 16px/1.5 "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  header {
+    background: var(--deep);
+    padding: 22px 32px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  header span { width: 9px; height: 9px; border-radius: 50%; background: var(--mint); }
+  header strong { color: #fff; font-size: 22px; letter-spacing: -0.01em; }
+  main { display: flex; justify-content: center; padding: 72px 20px 40px; }
+  .card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 1px 3px rgba(13, 27, 26, 0.06);
+  }
+  h1 { margin: 0 0 10px; font-size: 30px; letter-spacing: -0.02em; }
+  .lede { margin: 0 0 28px; color: var(--muted); }
+  label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  input {
+    width: 100%;
+    padding: 15px 16px;
+    font: inherit;
+    color: var(--ink);
+    background: #eef2f6;
+    border: 1px solid transparent;
+    border-radius: 12px;
+  }
+  input:focus { outline: 2px solid var(--mint-dark); outline-offset: 2px; }
+  .field { margin-bottom: 18px; }
+  button {
+    width: 100%;
+    margin-top: 6px;
+    padding: 17px;
+    font: 600 17px/1 inherit;
+    color: var(--ink);
+    background: var(--mint);
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  button:hover { background: var(--mint-dark); }
+  button:disabled { opacity: 0.55; cursor: default; }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--deep); outline-offset: 3px; }
+  a { color: var(--deep); font-size: 15px; }
+  .row { display: flex; justify-content: flex-end; margin-top: 18px; }
+  .msg { margin-top: 20px; font-size: 15px; color: var(--muted); }
+  .msg[data-tone="error"] { color: var(--error); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+  <header><span></span><strong>Patch</strong></header>
+
+  <main>
+    <div class="card">
+      <h1 id="title">Set a password</h1>
+      <p class="lede" id="lede">Checking your link.</p>
+
+      <div id="form" class="hidden">
+        <div class="field">
+          <label for="password">NEW PASSWORD</label>
+          <input id="password" type="password" autocomplete="new-password" minlength="10">
+        </div>
+        <div class="field">
+          <label for="confirm">CONFIRM PASSWORD</label>
+          <input id="confirm" type="password" autocomplete="new-password" minlength="10">
+        </div>
+        <button id="saveBtn">Save password</button>
+      </div>
+
+      <div class="row hidden" id="backRow"><a href="/login.html">Back to sign in</a></div>
+      <p class="msg hidden" id="msg"></p>
+    </div>
+  </main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const token = new URLSearchParams(location.search).get('token');
+
+  function show(text, tone) {
+    $('msg').textContent = text;
+    $('msg').dataset.tone = tone || 'info';
+    $('msg').classList.remove('hidden');
+  }
+
+  async function init() {
+    if (!token) return dead('This link is missing its code. Request a new one from the sign in page.');
+    try {
+      const res = await fetch(`/auth/reset/check?token=${encodeURIComponent(token)}`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      $('title').textContent = data.firstTime ? 'Set a password' : 'Choose a new password';
+      $('lede').textContent = `For ${data.email}. Use at least 10 characters.`;
+      $('form').classList.remove('hidden');
+      $('password').focus();
+    } catch {
+      dead('That link has expired or has already been used. Request a new one from the sign in page.');
+    }
+  }
+
+  function dead(text) {
+    $('title').textContent = 'Link no longer works';
+    $('lede').textContent = text;
+    $('backRow').classList.remove('hidden');
+  }
+
+  async function save() {
+    const password = $('password').value;
+    if (password.length < 10) return show('Use at least 10 characters.', 'error');
+    if (password !== $('confirm').value) return show('The two passwords do not match.', 'error');
+
+    $('saveBtn').disabled = true;
+    $('saveBtn').textContent = 'Saving';
+    try {
+      const res = await fetch('/auth/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ token, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Could not save that password.');
+      location.href = data.next || '/dashboard.html';
+    } catch (err) {
+      show(err.message, 'error');
+      $('saveBtn').disabled = false;
+      $('saveBtn').textContent = 'Save password';
+    }
+  }
+
+  $('saveBtn').onclick = save;
+  $('confirm').addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
+  init();
+</script>
+</body>
+</html>
