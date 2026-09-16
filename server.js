@@ -254,7 +254,7 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req, res)
 
 app.use(express.json());
 /* Pages that already carry their own admin navigation in their markup. */
-const HAS_OWN_NAV = new Set(["admin.html", "analytics.html", "bands.html"]);
+const HAS_OWN_NAV = new Set();   // the injected bar is now the only navigation
 
 const ADMIN_BAR = `
 <div id="patch-admin-bar" style="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#04222C;
@@ -267,9 +267,17 @@ const ADMIN_BAR = `
   <a href="/admin/bands.html" style="color:rgba(255,255,255,.65);text-decoration:none">Lead volumes</a>
   <a href="/pricing.html" style="color:rgba(255,255,255,.65);text-decoration:none">Preview picker</a>
   <a href="/" style="color:rgba(255,255,255,.65);text-decoration:none">Public site</a>
+  <a href="#" id="patch-signout" style="color:rgba(255,255,255,.65);text-decoration:none">Sign out</a>
   <span style="margin-left:auto;color:rgba(255,255,255,.38)">Only you can see this bar</span>
 </div>
-<style>body{padding-bottom:48px}</style>`;
+<style>body{padding-bottom:52px}
+/* the old per page navs are replaced by the bar, so they are hidden for admins */
+.topbar .nav,.topbar .topbar-links{display:none}</style>
+<script>document.getElementById("patch-signout").addEventListener("click", async e => {
+  e.preventDefault();
+  try { await fetch("/auth/logout", { method: "POST" }); } catch (err) {}
+  location.href = "/login.html";
+});<\/script>`;
 
 /* The bar is added server side and only for a signed in admin, so a customer
    never receives the markup at all. There is nothing in the page source for
