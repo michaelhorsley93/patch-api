@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Patch · Lead volumes</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--deep:#04222C;--aqua:#2ECFBB;--aqua-2:#1BA495;--paper:#F5F7F6;--surface:#FFF;
+--ink:#08191F;--ink-2:#33474E;--ink-3:#5F7278;--line:#DFE5E4;--r:14px;--r-sm:9px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Manrope',system-ui,sans-serif;font-size:15px;line-height:1.55}
+h1,h2{font-family:'Sora',sans-serif;font-weight:700;letter-spacing:-.03em;line-height:1.12}
+h1{font-size:26px}h2{font-size:17px;margin-bottom:6px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+.topbar{background:var(--deep);color:#fff;padding:16px 0}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.05em;display:flex;align-items:center;gap:8px}
+.logo i{width:8px;height:8px;border-radius:50%;background:var(--aqua)}
+.nav{display:flex;align-items:center;gap:20px}
+.nav a,.nav button{color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;font-weight:500;
+  font-family:'Manrope',sans-serif;background:none;border:0;cursor:pointer;padding:0}
+.nav a:hover,.nav button:hover{color:#fff}
+.nav a.active{color:var(--aqua)}
+.main{padding:30px 0 80px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;margin-bottom:24px}
+.hint{color:var(--ink-3);font-size:14px;margin-bottom:18px;max-width:70ch}
+.table{width:100%;border-collapse:collapse}
+.table th{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
+  padding:0 10px 10px;text-align:left;border-bottom:1px solid var(--line)}
+.table td{padding:7px 10px;border-bottom:1px solid var(--paper);font-size:14px;vertical-align:middle}
+.table tr:hover td{background:var(--paper)}
+input,select{font-family:'Manrope',sans-serif;font-size:14px;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
+input:focus,select:focus{background:#fff;border-color:var(--aqua-2);outline:none;box-shadow:0 0 0 3px rgba(46,207,187,.15)}
+input.n{width:74px;text-align:right;font-variant-numeric:tabular-nums}
+.filters{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.search{max-width:280px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--aqua);color:var(--deep);
+  border:0;padding:12px 22px;border-radius:100px;font-family:'Manrope',sans-serif;font-size:14.5px;font-weight:700;cursor:pointer}
+.btn:hover{background:#43E0CB}
+.btn:disabled{background:#D9E0DF;color:var(--ink-3);cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.bar{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding:14px 0;margin-top:20px;display:flex;align-items:center;gap:16px;justify-content:flex-end}
+.msg{font-size:14px;color:var(--ink-3);margin-right:auto}
+.msg.ok{color:#2A6B36}.msg.bad{color:#9A4E20}
+.warn{background:#FDF1E9;border:1px solid #F3D5C0;color:#9A4E20;border-radius:var(--r-sm);padding:14px 16px;font-size:14px;margin-bottom:22px}
+.muted{color:var(--ink-3);font-size:12.5px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:760px){.grid3{grid-template-columns:1fr}}
+.bandbox{border:1px solid var(--line);border-radius:var(--r-sm);padding:16px}
+.bandbox h3{font-family:'Sora',sans-serif;font-size:15px;margin-bottom:12px;text-transform:capitalize}
+.bandrow{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13.5px;color:var(--ink-3)}
+.bandrow span{width:62px;flex:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="logo"><i></i>patch</div>
+    <div class="nav">
+      <a href="/admin.html">Agents</a>
+      <a href="/admin/analytics.html">Analytics</a>
+      <a href="/admin/bands.html" class="active">Lead volumes</a>
+      <a href="/pricing.html">Preview picker</a>
+      <button id="signout">Sign out</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="wrap">
+    <h1 style="margin-bottom:8px">Lead volumes</h1>
+    <p class="hint">These numbers drive what every agent is promised on the pricing page, and the delivery targets on your analytics. Changes take effect immediately, no deploy.</p>
+
+    <div class="warn" id="estimateWarning">
+      The seeded figures are estimates, not measured output from the calling team. Replace them with real numbers before setting <b>PRICING_LIVE=1</b> and putting the picker in front of customers.
+    </div>
+
+    <div class="card">
+      <h2>Bands</h2>
+      <p class="hint">Leads per slot, per month. Cap is how many of an agent's three slots one community in this band can absorb.</p>
+      <div class="grid3" id="bands"></div>
+    </div>
+
+    <div class="card">
+      <h2>Communities</h2>
+      <p class="hint">Leave the per community figures blank to inherit the band. Fill them in to override one area without moving it to a different band.</p>
+      <div class="filters">
+        <input class="search" id="search" type="search" placeholder="Search communities">
+        <select id="cityFilter" style="width:auto"><option value="all">All cities</option><option>Dubai</option><option>Abu Dhabi</option></select>
+        <select id="bandFilter" style="width:auto"><option value="all">All bands</option></select>
+        <span class="muted" id="count"></span>
+      </div>
+      <table class="table">
+        <thead><tr>
+          <th style="width:30%">Community</th><th>City</th><th>Band</th>
+          <th>Low</th><th>High</th><th>Cap</th><th>Shown</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <div class="bar">
+      <span class="msg" id="msg"></span>
+      <button class="btn btn-ghost" id="reload">Discard changes</button>
+      <button class="btn" id="save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let DATA = null, dirty = false;
+
+function bounce(){ location.href = "/login.html?next=" + encodeURIComponent(location.pathname); }
+
+async function load(){
+  const r = await fetch("/admin/pricing-config");
+  if(r.status === 401) return bounce();
+  DATA = await r.json();
+  dirty = false;
+  $("estimateWarning").hidden = !!DATA.live;
+  drawBands(); drawBandFilter(); drawRows(); note("");
+}
+
+function note(text, kind){
+  $("msg").textContent = text;
+  $("msg").className = "msg" + (kind ? " " + kind : "");
+}
+
+function drawBands(){
+  $("bands").innerHTML = Object.entries(DATA.bands).map(([name, b]) =>
+    '<div class="bandbox"><h3>' + esc(name) + '</h3>' +
+    '<div class="bandrow"><span>Low</span><input class="n b-lo" data-band="' + esc(name) + '" type="number" min="0" max="500" value="' + b.lo + '"> leads</div>' +
+    '<div class="bandrow"><span>High</span><input class="n b-hi" data-band="' + esc(name) + '" type="number" min="0" max="500" value="' + b.hi + '"> leads</div>' +
+    '<div class="bandrow"><span>Cap</span><input class="n b-cap" data-band="' + esc(name) + '" type="number" min="1" max="3" value="' + b.cap + '"> slots</div>' +
+    '</div>').join("");
+}
+
+function drawBandFilter(){
+  $("bandFilter").innerHTML = '<option value="all">All bands</option>' +
+    Object.keys(DATA.bands).map(b => '<option>' + esc(b) + '</option>').join("");
+}
+
+/* The config endpoint returns resolved figures, so an override is only visible
+   as a difference from its band. Good enough to edit against. */
+function drawRows(){
+  const q = $("search").value.trim().toLowerCase();
+  const city = $("cityFilter").value;
+  const band = $("bandFilter").value;
+
+  const list = DATA.communities.filter(c =>
+    (city === "all" || c.city === city) &&
+    (band === "all" || c.band === band) &&
+    (q === "" || c.name.toLowerCase().includes(q)));
+
+  $("count").textContent = list.length + " of " + DATA.communities.length + " shown";
+
+  $("rows").innerHTML = list.map(c => {
+    const b = DATA.bands[c.band] || {};
+    const ov = (k) => c[k] === b[k] ? "" : c[k];
+    return '<tr data-name="' + esc(c.name) + '">' +
+      '<td>' + esc(c.name) + '</td>' +
+      '<td><select class="f-city"><option' + (c.city === "Dubai" ? " selected" : "") + '>Dubai</option>' +
+        '<option' + (c.city === "Abu Dhabi" ? " selected" : "") + '>Abu Dhabi</option></select></td>' +
+      '<td><select class="f-band">' + Object.keys(DATA.bands).map(n =>
+        '<option' + (n === c.band ? " selected" : "") + '>' + esc(n) + '</option>').join("") + '</select></td>' +
+      '<td><input class="n f-lo" type="number" min="0" max="500" placeholder="' + b.lo + '" value="' + ov("lo") + '"></td>' +
+      '<td><input class="n f-hi" type="number" min="0" max="500" placeholder="' + b.hi + '" value="' + ov("hi") + '"></td>' +
+      '<td><input class="n f-cap" type="number" min="1" max="3" placeholder="' + b.cap + '" value="' + ov("cap") + '"></td>' +
+      '<td><input class="f-active" type="checkbox" style="width:auto"' + (c.active === false ? "" : " checked") + '></td>' +
+      '</tr>';
+  }).join("");
+}
+
+["search","cityFilter","bandFilter"].forEach(id =>
+  $(id).addEventListener("input", drawRows));
+
+document.addEventListener("input", e => {
+  if(e.target.closest("#rows") || e.target.closest("#bands")){
+    dirty = true;
+    note("Unsaved changes");
+  }
+});
+
+window.addEventListener("beforeunload", e => { if(dirty){ e.preventDefault(); e.returnValue = ""; } });
+
+$("reload").addEventListener("click", () => { if(!dirty || confirm("Discard your changes?")) load(); });
+
+$("save").addEventListener("click", async () => {
+  const bands = Object.keys(DATA.bands).map(name => ({
+    name,
+    lo:  Number(document.querySelector('.b-lo[data-band="'  + CSS.escape(name) + '"]').value),
+    hi:  Number(document.querySelector('.b-hi[data-band="'  + CSS.escape(name) + '"]').value),
+    cap: Number(document.querySelector('.b-cap[data-band="' + CSS.escape(name) + '"]').value)
+  }));
+
+  /* Only the rows currently on screen are sent, so a filtered view never
+     silently rewrites the communities you cannot see. */
+  const communities = [...document.querySelectorAll("#rows tr")].map(tr => ({
+    name:   tr.dataset.name,
+    city:   tr.querySelector(".f-city").value,
+    band:   tr.querySelector(".f-band").value,
+    lo:     tr.querySelector(".f-lo").value,
+    hi:     tr.querySelector(".f-hi").value,
+    cap:    tr.querySelector(".f-cap").value,
+    active: tr.querySelector(".f-active").checked
+  }));
+
+  $("save").disabled = true;
+  note("Saving");
+  try{
+    const r = await fetch("/admin/pricing-config", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bands, communities })
+    });
+    if(r.status === 401) return bounce();
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || "save failed");
+    DATA = d; dirty = false;
+    drawBands(); drawRows();
+    note("Saved. Live now.", "ok");
+  }catch(e){
+    note(e.message, "bad");
+  }
+  $("save").disabled = false;
+});
+
+$("signout").addEventListener("click", async () => {
+  try{ await fetch("/auth/logout", { method: "POST" }); }catch(e){}
+  location.href = "/login.html";
+});
+
+load();
+</script>
+</body>
+</html>
