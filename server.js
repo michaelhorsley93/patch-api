@@ -253,7 +253,34 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req, res)
 });
 
 app.use(express.json());
-const page = f => (_req, res) => res.type("html").send(fs.readFileSync(path.join(__dirname, f), "utf8"));
+/* Pages that already carry their own admin navigation in their markup. */
+const HAS_OWN_NAV = new Set(["admin.html", "analytics.html", "bands.html"]);
+
+const ADMIN_BAR = `
+<div id="patch-admin-bar" style="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#04222C;
+  color:#fff;font:500 13.5px/1 Manrope,system-ui,sans-serif;padding:12px 18px;display:flex;gap:18px;
+  align-items:center;box-shadow:0 -1px 6px rgba(0,0,0,.18)">
+  <span style="display:flex;align-items:center;gap:7px;font-weight:800;letter-spacing:-.04em">
+    <i style="width:7px;height:7px;border-radius:50%;background:#2ECFBB;display:inline-block"></i>admin</span>
+  <a href="/admin.html" style="color:rgba(255,255,255,.65);text-decoration:none">Agents</a>
+  <a href="/admin/analytics.html" style="color:rgba(255,255,255,.65);text-decoration:none">Analytics</a>
+  <a href="/admin/bands.html" style="color:rgba(255,255,255,.65);text-decoration:none">Lead volumes</a>
+  <a href="/pricing.html" style="color:rgba(255,255,255,.65);text-decoration:none">Preview picker</a>
+  <a href="/" style="color:rgba(255,255,255,.65);text-decoration:none">Public site</a>
+  <span style="margin-left:auto;color:rgba(255,255,255,.38)">Only you can see this bar</span>
+</div>
+<style>body{padding-bottom:48px}</style>`;
+
+/* The bar is added server side and only for a signed in admin, so a customer
+   never receives the markup at all. There is nothing in the page source for
+   them to find. */
+const page = f => (req, res) => {
+  let html = fs.readFileSync(path.join(__dirname, f), "utf8");
+  if (req.user?.role === "admin" && !HAS_OWN_NAV.has(f)) {
+    html = html.includes("</body>") ? html.replace("</body>", ADMIN_BAR + "\n</body>") : html + ADMIN_BAR;
+  }
+  res.type("html").send(html);
+};
 
 // --- password sign in -------------------------------------------------
 const auth = createAuth({ db, express });
