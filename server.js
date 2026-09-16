@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createAuth } from "./auth.js";
+import { SEED_BANDS, SEED_COMMUNITIES } from "./communities.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -13,6 +14,14 @@ const {
   STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET,
   PRICE_1_DESK, PRICE_2_DESKS, PRICE_3_DESKS,
+  // Slot pricing. Nine recurring prices: slot count x term.
+  PRICE_1_SLOT_MONTHLY = "", PRICE_2_SLOT_MONTHLY = "", PRICE_3_SLOT_MONTHLY = "",
+  PRICE_1_SLOT_3MO = "",     PRICE_2_SLOT_3MO = "",     PRICE_3_SLOT_3MO = "",
+  PRICE_1_SLOT_6MO = "",     PRICE_2_SLOT_6MO = "",     PRICE_3_SLOT_6MO = "",
+  // "1" makes the pricing config and /pricing.html public. Leave unset while
+  // the lead ranges are still estimates: both then require an admin session.
+  PRICING_LIVE = "",
+  STRIPE_PUBLISHABLE_KEY = "",
   ALLOWED_ORIGIN = "*",
   ADMIN_KEY,
   TELEGRAM_TOKEN = "",
@@ -31,8 +40,25 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
   maxNetworkRetries: 2,
   timeout: 20000
 });
+
+/* ══ pricing ═══════════════════════════════════════════════════
+   Three slots per agent. Spend them across up to three communities,
+   or stack them on one for multiplied volume there.
+   Money lives here; lead ranges live in the database (see /admin/bands.html). */
+const MAX_SLOTS = 3;
+const LIST     = { 1: 4000, 2: 7000, 3: 10000 };   // AED per month by slots used
+const DISCOUNT = { 1: 0, 3: 0.05, 6: 0.10 };        // by term in months
+
+const SLOT_PRICES = {
+  1: { 1: PRICE_1_SLOT_MONTHLY, 3: PRICE_1_SLOT_3MO, 6: PRICE_1_SLOT_6MO },
+  2: { 1: PRICE_2_SLOT_MONTHLY, 3: PRICE_2_SLOT_3MO, 6: PRICE_2_SLOT_6MO },
+  3: { 1: PRICE_3_SLOT_MONTHLY, 3: PRICE_3_SLOT_3MO, 6: PRICE_3_SLOT_6MO }
+};
+
+const chargeFor = (slots, term) => Math.round(LIST[slots] * (1 - DISCOUNT[term])) * term;
+
+/* Legacy, still used by the current index.html until it is replaced. */
 const PRICES = { 1: PRICE_1_DESK, 2: PRICE_2_DESKS, 3: PRICE_3_DESKS };
-// n = how many communities the agent covers
 const VOLUME = { 1: "10 to 20", 2: "20 to 40", 3: "30 to 60" };
 const TIER_LABEL = { 1: "One community", 2: "Two communities", 3: "Three communities" };
 
@@ -74,9 +100,40 @@ CREATE TABLE IF NOT EXISTS events (
   meta TEXT,
   created_at TEXT DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS bands (
+  name TEXT PRIMARY KEY,
+  lead_lo INTEGER NOT NULL,
+  lead_hi INTEGER NOT NULL,
+  cap INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS communities (
+  name TEXT PRIMARY KEY,
+  city TEXT NOT NULL,
+  band TEXT NOT NULL,
+  lead_lo INTEGER, lead_hi INTEGER, cap INTEGER,   -- null means inherit the band
+  active INTEGER NOT NULL DEFAULT 1
+);
 CREATE INDEX IF NOT EXISTS leads_agent ON leads(agent_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS events_name_at ON events(name, created_at DESC);
 `);
+
+/* Columns added after the first release. */
+const agentCols = db.prepare("PRAGMA table_info(agents)").all().map(c => c.name);
+if (!agentCols.includes("slots_json"))  db.exec("ALTER TABLE agents ADD COLUMN slots_json TEXT");
+if (!agentCols.includes("term_months")) db.exec("ALTER TABLE agents ADD COLUMN term_months INTEGER DEFAULT 1");
+
+/* Seed the picker once. After this the database is the source of truth and
+   everything is edited at /admin/bands.html without a deploy. */
+if (!db.prepare("SELECT COUNT(*) AS c FROM bands").get().c) {
+  const ins = db.prepare("INSERT INTO bands (name,lead_lo,lead_hi,cap) VALUES (?,?,?,?)");
+  db.transaction(() => SEED_BANDS.forEach(b => ins.run(...b)))();
+  console.log(`[pricing] seeded ${SEED_BANDS.length} bands`);
+}
+if (!db.prepare("SELECT COUNT(*) AS c FROM communities").get().c) {
+  const ins = db.prepare("INSERT INTO communities (name,city,band) VALUES (?,?,?)");
+  db.transaction(() => SEED_COMMUNITIES.forEach(c => ins.run(...c)))();
+  console.log(`[pricing] seeded ${SEED_COMMUNITIES.length} communities`);
+}
 
 const rid = (n = 24) => crypto.randomBytes(n).toString("base64url");
 const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -91,6 +148,42 @@ function track(name, req, meta = {}) {
       .run(name, session_id, ip, ua, ref, JSON.stringify(meta));
   } catch(e) { /* never block a request over analytics */ }
 }
+
+/* ══ pricing config ════════════════════════════════════════════ */
+function bandMap() {
+  const out = {};
+  for (const b of db.prepare("SELECT * FROM bands").all()) {
+    out[b.name] = { lo: b.lead_lo, hi: b.lead_hi, cap: b.cap };
+  }
+  return out;
+}
+
+function communityList() {
+  const bands = bandMap();
+  return db.prepare(
+    "SELECT name, city, band, lead_lo, lead_hi, cap FROM communities WHERE active=1 ORDER BY city, name"
+  ).all().map(c => {
+    const b = bands[c.band] || { lo: 0, hi: 0, cap: 1 };
+    return {
+      name: c.name,
+      city: c.city,
+      band: c.band,
+      lo:  c.lead_lo ?? b.lo,
+      hi:  c.lead_hi ?? b.hi,
+      cap: Math.min(c.cap ?? b.cap, MAX_SLOTS)
+    };
+  });
+}
+
+const pricingConfig = () => ({
+  maxSlots: MAX_SLOTS,
+  list: LIST,
+  discount: DISCOUNT,
+  bands: bandMap(),
+  communities: communityList(),
+  live: PRICING_LIVE === "1",
+  stripeKey: STRIPE_PUBLISHABLE_KEY
+});
 
 /* ══ telegram ══════════════════════════════════════════════════ */
 async function tg(chatId, text, buttons) {
@@ -147,7 +240,8 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req, res)
     if (agent) notifyAdmin(agent);
     const m = event.data.object.metadata || {};
     db.prepare("INSERT INTO events (name,meta) VALUES (?,?)").run("subscription_created",
-      JSON.stringify({ community: m.community, tier: m.tier, email: m.email, price_aed: m.priceAED }));
+      JSON.stringify({ community: m.community, tier: m.tier, slots: m.slots, term: m.termMonths,
+                       email: m.email, price_aed: m.priceAED }));
   }
   if (event.type === "customer.subscription.deleted") {
     const sub = event.data.object.id;
@@ -179,6 +273,14 @@ app.get("/index.html", page("index.html"));
 app.get("/dashboard.html", page("dashboard.html"));
 app.get("/admin.html", page("admin.html"));
 
+/* The new slot picker. While the lead ranges are still estimates this is
+   behind the admin login. Set PRICING_LIVE=1 to open it to the public. */
+const pricingGate = (req, res, next) =>
+  PRICING_LIVE === "1" ? next() : auth.requireAdmin({ redirect: "/login.html" })(req, res, next);
+
+app.get("/pricing.html", pricingGate, page("pricing.html"));
+app.get("/pricing-config", pricingGate, (_req, res) => res.json(pricingConfig()));
+
 /* ── analytics tracking (client fires these) ──────────────────── */
 app.post("/track", (req, res) => {
   const allowed = ["page_view", "checkout_started", "checkout_abandoned", "plan_selected"];
@@ -189,23 +291,87 @@ app.post("/track", (req, res) => {
 });
 
 /* ── checkout ─────────────────────────────────────────────────── */
+
+/* Slot orders are re-priced here from the database. Nothing the browser
+   sends about money or volume is trusted. */
+function readSlotOrder(b) {
+  const term = Number(b.term || b.termMonths || 1);
+  if (!DISCOUNT.hasOwnProperty(term)) return { error: "unknown term" };
+
+  const raw = Array.isArray(b.slots) ? b.slots : [];
+  if (!raw.length) return { error: "pick at least one community" };
+  if (raw.length > MAX_SLOTS) return { error: "too many communities" };
+
+  const lookup = new Map(communityList().map(c => [c.name, c]));
+  const picked = [];
+  let used = 0, lo = 0, hi = 0;
+
+  for (const item of raw) {
+    const c = lookup.get(String(item?.name || ""));
+    if (!c) return { error: `unknown community: ${String(item?.name || "").slice(0, 60)}` };
+    if (picked.some(p => p.name === c.name)) return { error: "same community twice" };
+
+    const n = item.slots === undefined || item.slots === null ? 1 : Number(item.slots);
+    if (!Number.isInteger(n) || n < 1) return { error: "bad slot count" };
+    if (n > c.cap) return { error: `${c.name} takes at most ${c.cap} ${c.cap === 1 ? "slot" : "slots"}` };
+
+    picked.push({ name: c.name, slots: n, city: c.city });
+    used += n; lo += c.lo * n; hi += c.hi * n;
+  }
+  if (used < 1 || used > MAX_SLOTS) return { error: "slots must total between 1 and 3" };
+
+  const price = SLOT_PRICES[used]?.[term];
+  if (!price) return { error: `no Stripe price configured for ${used} slots on the ${term} month term` };
+
+  return { term, used, picked, lo, hi, price, amount: chargeFor(used, term) };
+}
+
 app.post("/create-checkout-session", async (req, res) => {
   try {
     const b = req.body || {};
-    const tier = Number(b.tier || b.desks);
-    const price = PRICES[tier];
-    if (!price) return res.status(400).json({ error: "unknown plan" });
-    if (!b.community) return res.status(400).json({ error: "community required" });
+    if (!b.community && !Array.isArray(b.slots)) return res.status(400).json({ error: "community required" });
     if (!b.email) return res.status(400).json({ error: "email required" });
 
     const cut = (v, n) => String(v ?? "").slice(0, n);
-    const metadata = {
-      firstName: cut(b.firstName, 90), lastName: cut(b.lastName, 90),
-      email: cut(b.email, 120), phone: cut(b.phone, 40),
-      city: cut(b.city, 40), community: cut(b.community, 90),
-      mix: cut(b.mix, 40), tier: String(tier),
-      volume: cut(b.volume, 20) || VOLUME[tier] || "", priceAED: String(b.priceAED || "")
-    };
+    let price, metadata;
+
+    if (Array.isArray(b.slots)) {
+      /* ── slot pricing ── */
+      const order = readSlotOrder(b);
+      if (order.error) return res.status(400).json({ error: order.error });
+      price = order.price;
+
+      metadata = {
+        firstName: cut(b.firstName, 90), lastName: cut(b.lastName, 90),
+        email: cut(b.email, 120), phone: cut(b.phone, 40),
+        city: cut(order.picked[0].city, 40),
+        community: cut(order.picked.map(p => p.slots > 1 ? `${p.name} x${p.slots}` : p.name).join(", "), 220),
+        slots: cut(JSON.stringify(order.picked.map(p => [p.name, p.slots])), 480),
+        slotsUsed: String(order.used),
+        termMonths: String(order.term),
+        volume: `${order.lo} to ${order.hi}`,
+        priceAED: String(order.amount),
+        tier: String(order.used)
+      };
+      track("checkout_initiated", req, {
+        slots: order.used, term: order.term, email: b.email,
+        communities: order.picked.map(p => p.name)
+      });
+    } else {
+      /* ── legacy community count pricing, for the current index.html ── */
+      const tier = Number(b.tier || b.desks);
+      price = PRICES[tier];
+      if (!price) return res.status(400).json({ error: "unknown plan" });
+
+      metadata = {
+        firstName: cut(b.firstName, 90), lastName: cut(b.lastName, 90),
+        email: cut(b.email, 120), phone: cut(b.phone, 40),
+        city: cut(b.city, 40), community: cut(b.community, 90),
+        mix: cut(b.mix, 40), tier: String(tier),
+        volume: cut(b.volume, 20) || VOLUME[tier] || "", priceAED: String(b.priceAED || "")
+      };
+      track("checkout_initiated", req, { tier, community: b.community, email: b.email });
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription", ui_mode: "embedded", redirect_on_completion: "never",
@@ -214,7 +380,6 @@ app.post("/create-checkout-session", async (req, res) => {
       client_reference_id: `${metadata.community}`.replace(/\s+/g, "-").slice(0, 190),
       metadata, subscription_data: { metadata }
     });
-    track("checkout_initiated", req, { tier, community: b.community, email: b.email, stripe_session: session.id });
     res.json({ clientSecret: session.client_secret });
   } catch (e) {
     console.error("Session create failed:", e.type || "", e.message);
@@ -233,24 +398,26 @@ function upsertAgent(s) {
 
   const info = db.prepare(`INSERT INTO agents
     (stripe_customer, stripe_subscription, first_name, last_name, email, phone,
-     city, community, mix, desks, volume, price_aed, link_token)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+     city, community, mix, desks, volume, price_aed, link_token, slots_json, term_months)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       s.customer, s.subscription, m.firstName, m.lastName,
       s.customer_details?.email || m.email, m.phone,
-      m.city, m.community, m.mix, Number(m.tier || m.desks || 1), m.volume,
-      Number(m.priceAED || 0), rid(18));
+      m.city, m.community, m.mix, Number(m.slotsUsed || m.tier || m.desks || 1), m.volume,
+      Number(m.priceAED || 0), rid(18), m.slots || null, Number(m.termMonths || 1));
   return db.prepare("SELECT * FROM agents WHERE id=?").get(info.lastInsertRowid);
 }
 
 function notifyAdmin(a) {
+  const term = Number(a.term_months || 1);
   const text = [
     "\u2705 <b>New Patch subscriber</b>", "",
     `<b>${esc(a.first_name)} ${esc(a.last_name)}</b>`,
     `\u{1F4DE} ${esc(a.phone)}`,
     `\u2709\uFE0F ${esc(a.email)}`, "",
-    `<b>${esc(a.community)}</b> (${esc(a.city)})`,
-    `${esc(a.volume)} leads a month \u00B7 ${esc(a.mix)} \u00B7 ${TIER_LABEL[a.desks] || a.desks + " communities"}`,
-    `AED ${Number(a.price_aed).toLocaleString("en-AE")} a month`
+    `<b>${esc(a.community)}</b>`,
+    `${esc(a.volume)} leads a month`,
+    term > 1 ? `AED ${Number(a.price_aed).toLocaleString("en-AE")} for ${term} months, paid upfront`
+             : `AED ${Number(a.price_aed).toLocaleString("en-AE")} a month`
   ].filter(Boolean).join("\n");
   console.log(text.replace(/<[^>]+>/g, ""));
   if (TELEGRAM_ADMIN_CHAT_ID) tg(TELEGRAM_ADMIN_CHAT_ID, text);
@@ -330,11 +497,14 @@ app.get("/me", (req, res) => {
   const a = agentFrom(req);
   if (!a) return res.status(401).json({ error: "not signed in" });
   const leads = db.prepare("SELECT * FROM leads WHERE agent_id=? ORDER BY created_at DESC").all(a.id);
+  let slots = [];
+  try { slots = JSON.parse(a.slots_json || "[]"); } catch (e) {}
   res.json({
     agent: {
       firstName: a.first_name, lastName: a.last_name, community: a.community, city: a.city,
       mix: a.mix, volume: a.volume, tier: a.desks, tierLabel: TIER_LABEL[a.desks] || "",
-      communities: String(a.community || "").split(/,\s*|\s+and\s+/).filter(Boolean), priceAED: a.price_aed,
+      communities: String(a.community || "").split(/,\s*|\s+and\s+/).filter(Boolean),
+      slots, termMonths: a.term_months || 1, priceAED: a.price_aed,
       telegramConnected: !!a.telegram_chat_id,
       telegramLink: TELEGRAM_BOT_USERNAME ? `https://t.me/${TELEGRAM_BOT_USERNAME}?start=${a.link_token}` : "",
       since: a.created_at
@@ -354,8 +524,64 @@ app.patch("/leads/:id", (req, res) => {
 });
 
 /* ── admin ────────────────────────────────────────────────────── */
-const admin = (req, res, next) =>
-  req.headers["x-admin-key"] === ADMIN_KEY ? next() : res.status(401).json({ error: "no" });
+/* Two ways in: a signed in admin session (the normal way, set by auth.js),
+   or the X-Admin-Key header (kept for curl and anything already using it). */
+const admin = (req, res, next) => {
+  if (req.headers["x-admin-key"] === ADMIN_KEY) return next();
+  if (req.user?.role === "admin") return next();
+  return res.status(401).json({ error: "not signed in" });
+};
+
+app.get("/admin/bands.html", admin, page("bands.html"));
+
+app.get("/admin/pricing-config", admin, (_req, res) => res.json(pricingConfig()));
+
+/* Edit the bands and the community list. Live immediately, no deploy. */
+app.post("/admin/pricing-config", admin, (req, res) => {
+  const b = req.body || {};
+  const num = (v, min, max) => {
+    const n = Number(v);
+    return Number.isInteger(n) && n >= min && n <= max ? n : null;
+  };
+
+  try {
+    db.transaction(() => {
+      for (const band of (Array.isArray(b.bands) ? b.bands : [])) {
+        const lo = num(band.lo, 0, 500), hi = num(band.hi, 0, 500), cap = num(band.cap, 1, MAX_SLOTS);
+        if (lo === null || hi === null || cap === null) throw new Error(`bad numbers for band ${band.name}`);
+        if (hi < lo) throw new Error(`${band.name}: the high figure is below the low one`);
+        db.prepare(`INSERT INTO bands (name,lead_lo,lead_hi,cap) VALUES (?,?,?,?)
+                    ON CONFLICT(name) DO UPDATE SET lead_lo=?, lead_hi=?, cap=?`)
+          .run(String(band.name).slice(0, 40), lo, hi, cap, lo, hi, cap);
+      }
+
+      for (const c of (Array.isArray(b.communities) ? b.communities : [])) {
+        const name = String(c.name || "").trim().slice(0, 80);
+        if (!name) continue;
+        if (c.remove) { db.prepare("DELETE FROM communities WHERE name=?").run(name); continue; }
+
+        const city = String(c.city || "Dubai").slice(0, 40);
+        const band = String(c.band || "mid").slice(0, 40);
+        if (!db.prepare("SELECT 1 FROM bands WHERE name=?").get(band)) throw new Error(`unknown band: ${band}`);
+
+        const lo  = c.lo  === "" || c.lo  == null ? null : num(c.lo, 0, 500);
+        const hi  = c.hi  === "" || c.hi  == null ? null : num(c.hi, 0, 500);
+        const cap = c.cap === "" || c.cap == null ? null : num(c.cap, 1, MAX_SLOTS);
+        if (lo !== null && hi !== null && hi < lo) throw new Error(`${name}: the high figure is below the low one`);
+
+        db.prepare(`INSERT INTO communities (name,city,band,lead_lo,lead_hi,cap,active)
+                    VALUES (?,?,?,?,?,?,?)
+                    ON CONFLICT(name) DO UPDATE SET city=?, band=?, lead_lo=?, lead_hi=?, cap=?, active=?`)
+          .run(name, city, band, lo, hi, cap, c.active === false ? 0 : 1,
+                     city, band, lo, hi, cap, c.active === false ? 0 : 1);
+      }
+    })();
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
+  }
+
+  res.json({ ok: true, ...pricingConfig() });
+});
 
 app.get("/admin/agents", admin, (_req, res) => {
   res.json(db.prepare(`
@@ -427,7 +653,35 @@ app.get("/admin/analytics", admin, (_req, res) => {
      FROM events WHERE name='page_view' AND created_at >= ${days(30)}`
   ).get().c;
 
-  // abandoned = initiated checkout but no subscription created within 2 hours (approx)
+  // today, in UTC (same clock the database writes with)
+  const todayCount = name => db.prepare(
+    `SELECT COUNT(*) AS c FROM events WHERE name=? AND date(created_at)=date('now')`
+  ).get(name).c;
+
+  const today = {
+    views: todayCount("page_view"),
+    visitors: db.prepare(
+      `SELECT COUNT(DISTINCT CASE WHEN session_id!='' THEN session_id ELSE ip END) AS c
+       FROM events WHERE name='page_view' AND date(created_at)=date('now')`
+    ).get().c,
+    checkouts: todayCount("checkout_initiated"),
+    signups: todayCount("subscription_created"),
+    leads: db.prepare(
+      `SELECT COUNT(*) AS c FROM leads WHERE date(created_at)=date('now')`
+    ).get().c
+  };
+
+  const yesterday = {
+    views: db.prepare(
+      `SELECT COUNT(*) AS c FROM events WHERE name='page_view' AND date(created_at)=date('now','-1 day')`
+    ).get().c,
+    visitors: db.prepare(
+      `SELECT COUNT(DISTINCT CASE WHEN session_id!='' THEN session_id ELSE ip END) AS c
+       FROM events WHERE name='page_view' AND date(created_at)=date('now','-1 day')`
+    ).get().c
+  };
+
+  // abandoned = initiated checkout but no subscription created
   const abandoned = db.prepare(`
     SELECT COUNT(DISTINCT json_extract(meta,'$.email')) AS c FROM events
     WHERE name='checkout_initiated' AND created_at >= ${days(30)}
@@ -437,22 +691,20 @@ app.get("/admin/analytics", admin, (_req, res) => {
     )
   `).get().c;
 
-  // active subscribers + MRR
+  // active subscribers + MRR (prepaid terms normalised to a monthly figure)
   const agents = db.prepare("SELECT * FROM agents WHERE status='active'").all();
-  const mrr    = agents.reduce((s, a) => s + (a.price_aed || 0), 0);
+  const mrr = agents.reduce((s, a) => s + Math.round((a.price_aed || 0) / (a.term_months || 1)), 0);
+  const prepaidBanked = agents.reduce((s, a) => s + ((a.term_months || 1) > 1 ? (a.price_aed || 0) : 0), 0);
 
-  // new this month
   const newThisMonth = db.prepare(
     `SELECT COUNT(*) AS c FROM agents WHERE status='active' AND created_at >= date('now','start of month')`
   ).get().c;
 
-  // churn this month
   const churnThisMonth = db.prepare(
     `SELECT COUNT(*) AS c FROM events WHERE name='subscription_cancelled'
      AND created_at >= date('now','start of month')`
   ).get().c;
 
-  // leads this month
   const leadsThisMonth = db.prepare(
     `SELECT COUNT(*) AS c FROM leads WHERE created_at >= date('now','start of month')`
   ).get().c;
@@ -460,12 +712,30 @@ app.get("/admin/analytics", admin, (_req, res) => {
     `SELECT COUNT(*) AS c FROM leads WHERE delivered=1 AND created_at >= date('now','start of month')`
   ).get().c;
 
-  // community breakdown
+  /* What each agent is owed this month. Slot orders carry their own agreed
+     range in `volume`, so the low end of that is the target. */
+  const delivery = db.prepare(`
+    SELECT a.id, a.first_name, a.last_name, a.community, a.volume, a.telegram_chat_id,
+           (SELECT COUNT(*) FROM leads l WHERE l.agent_id=a.id
+              AND l.created_at >= date('now','start of month')) AS sent_this_month
+    FROM agents a WHERE a.status='active' ORDER BY sent_this_month ASC
+  `).all().map(a => {
+    const target = Number(String(a.volume || "10 to 20").split(" to ")[0]) || 10;
+    return {
+      id: a.id,
+      name: `${a.first_name} ${a.last_name}`,
+      community: a.community,
+      target,
+      sent: a.sent_this_month,
+      owed: Math.max(0, target - a.sent_this_month),
+      telegram: !!a.telegram_chat_id
+    };
+  });
+
   const communityBreakdown = db.prepare(
     `SELECT community, COUNT(*) AS count FROM agents WHERE status='active' GROUP BY community ORDER BY count DESC`
   ).all();
 
-  // page views last 14 days (daily)
   const dailyViews = db.prepare(`
     SELECT date(created_at) AS day, COUNT(*) AS views,
            COUNT(DISTINCT CASE WHEN session_id!='' THEN session_id ELSE ip END) AS uniq
@@ -473,29 +743,27 @@ app.get("/admin/analytics", admin, (_req, res) => {
     GROUP BY day ORDER BY day ASC
   `).all();
 
-  // recent signups
   const recentSignups = db.prepare(
-    `SELECT first_name, last_name, email, community, desks, price_aed, created_at
+    `SELECT first_name, last_name, email, community, desks, price_aed, term_months, created_at
      FROM agents WHERE status='active' ORDER BY created_at DESC LIMIT 10`
   ).all();
 
-  // top referrers (last 30 days)
   const topRefs = db.prepare(`
     SELECT CASE WHEN ref='' THEN 'Direct' ELSE ref END AS source, COUNT(*) AS visits
     FROM events WHERE name='page_view' AND created_at >= ${days(30)}
     GROUP BY source ORDER BY visits DESC LIMIT 10
   `).all();
 
-  // agents without Telegram
   const noTelegram = db.prepare(
     `SELECT COUNT(*) AS c FROM agents WHERE status='active' AND (telegram_chat_id IS NULL OR telegram_chat_id='')`
   ).get().c;
 
   res.json({
+    today, yesterday,
     funnel: { pageViews, uniqueVisitors, planSelected, checkoutInit, checkoutStart, subscriptions, abandoned },
-    subscribers: { active: agents.length, mrr, newThisMonth, churnThisMonth, noTelegram },
+    subscribers: { active: agents.length, mrr, prepaidBanked, newThisMonth, churnThisMonth, noTelegram },
     leads: { thisMonth: leadsThisMonth, delivered: leadsDelivered },
-    communityBreakdown, dailyViews, recentSignups, topRefs,
+    delivery, communityBreakdown, dailyViews, recentSignups, topRefs,
     generatedAt: new Date().toISOString()
   });
 });
@@ -507,6 +775,12 @@ app.get("/admin/analytics.html", (_req, res) => {
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.listen(PORT, async () => {
   console.log(`Patch API on ${PORT}`);
+  const missing = [1, 2, 3].flatMap(s => [1, 3, 6]
+    .filter(t => !SLOT_PRICES[s][t])
+    .map(t => `${s} slot${s > 1 ? "s" : ""} / ${t} month`));
+  if (missing.length) console.log(`[pricing] no Stripe price set for: ${missing.join(", ")}`);
+  console.log(`[pricing] slot picker is ${PRICING_LIVE === "1" ? "PUBLIC" : "behind the admin login"}`);
+
   // Register the Telegram webhook with ourselves on boot, so the token
   // never has to be pasted into a URL by hand.
   if (!TELEGRAM_TOKEN) return console.log("Telegram: no token set, webhook not registered");

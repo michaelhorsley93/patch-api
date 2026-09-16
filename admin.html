@@ -23,6 +23,10 @@ a{color:var(--aqua-2)}
 .logo{font-family:'Sora',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.05em;display:flex;align-items:center;gap:8px}
 .logo i{width:8px;height:8px;border-radius:50%;background:var(--aqua)}
 .topbar .sub{font-size:13.5px;color:rgba(255,255,255,.6)}
+.nav{display:flex;align-items:center;gap:20px}
+.nav a,.nav button{color:rgba(255,255,255,.6);text-decoration:none;font-size:14px;font-weight:500;font-family:'Manrope',sans-serif;background:none;border:0;cursor:pointer;padding:0}
+.nav a:hover,.nav button:hover{color:#fff}
+.nav a.active{color:var(--aqua)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--aqua);color:var(--deep);border:0;padding:12px 20px;border-radius:100px;font-family:'Manrope',sans-serif;font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;transition:.18s}
 .btn:hover{background:#43E0CB;transform:translateY(-1px)}
 .btn:disabled{background:#B7C6C4;cursor:not-allowed;transform:none}
@@ -66,7 +70,6 @@ main{padding:26px 0 70px}
 .on{background:#2FBF6B}.off{background:#E0A33C}
 .feed{display:flex;flex-direction:column;gap:9px}
 .fl{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px 16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px}
-.gate{max-width:400px;margin:80px auto;padding:0 20px}
 .ok{background:#E1F5E4;border:1px solid #B9E3C0;color:#2A6B36;border-radius:var(--r-sm);padding:13px 15px;font-size:14px;margin-bottom:16px}
 </style>
 </head>
@@ -75,21 +78,16 @@ main{padding:26px 0 70px}
 <div class="topbar">
   <div class="wrap">
     <div class="logo"><i></i>Patch admin</div>
-    <span class="sub" id="count"></span>
+    <div class="nav">
+      <a href="/admin.html" class="active">Agents</a>
+      <a href="/admin/analytics.html">Analytics</a>
+      <span class="sub" id="count"></span>
+      <button id="signout">Sign out</button>
+    </div>
   </div>
 </div>
 
-<div class="gate" id="gate">
-  <div class="card">
-    <h2 style="margin-bottom:8px">Admin key</h2>
-    <p style="font-size:14.5px;margin-bottom:18px">Paste the ADMIN_KEY you set in Railway.</p>
-    <div class="field"><input id="key" type="password" autocomplete="off"></div>
-    <button class="btn btn-w" id="go">Open</button>
-    <p class="muted" id="gateMsg" style="margin-top:12px;text-align:center"></p>
-  </div>
-</div>
-
-<main id="app" hidden>
+<main id="app">
   <div class="wrap grid">
     <div class="sticky">
       <div class="card">
@@ -133,24 +131,24 @@ main{padding:26px 0 70px}
 
 <script>
 const API = location.origin;
-let KEY = sessionStorage.getItem("patch_admin") || "";
 let AGENTS = [];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const hdr = () => ({ "Content-Type":"application/json", "X-Admin-Key": KEY });
+const hdr = () => ({ "Content-Type":"application/json" });
+
+/* The session cookie set at sign in authorises everything below.
+   If it has expired the server answers 401 and we go back to the sign in page. */
+function bounce(){ location.href = "/login.html?next=" + encodeURIComponent(location.pathname); }
 
 async function boot(){
-  if(!KEY) return;
   try{
     const r = await fetch(API+"/admin/agents", { headers: hdr() });
-    if(!r.ok) throw 0;
+    if(r.status === 401) return bounce();
+    if(!r.ok) throw new Error("could not load agents");
     AGENTS = await r.json();
-    sessionStorage.setItem("patch_admin", KEY);
-    $("gate").hidden = true; $("app").hidden = false;
     drawAgents(); drawFeed();
   }catch(e){
-    KEY = ""; sessionStorage.removeItem("patch_admin");
-    $("gateMsg").textContent = "That key was not accepted.";
+    $("agents").innerHTML = '<div class="card empty">Could not load agents. Refresh to try again.</div>';
   }
 }
 
@@ -183,7 +181,9 @@ function drawAgents(){
 
 async function drawFeed(){
   try{
-    const leads = await (await fetch(API+"/admin/leads", { headers: hdr() })).json();
+    const r = await fetch(API+"/admin/leads", { headers: hdr() });
+    if(r.status === 401) return bounce();
+    const leads = await r.json();
     $("feed").innerHTML = leads.length ? leads.slice(0,40).map(l => {
       const d = new Date((l.created_at||"").replace(" ","T")+"Z");
       return '<div class="fl"><div><b>'+esc(l.name)+"</b> · "+esc(l.type)+" · "+esc(l.community)
@@ -203,6 +203,7 @@ $("agents").addEventListener("click", async e => {
   b.disabled = true; const label = b.textContent; b.textContent = "Opening";
   try{
     const r = await fetch(API+"/admin/login/"+b.dataset.id, { headers: hdr() });
+    if(r.status === 401) return bounce();
     const d = await r.json();
     if(!r.ok || !d.url) throw new Error(d.error || "failed");
     window.open(d.url, "_blank");
@@ -210,8 +211,10 @@ $("agents").addEventListener("click", async e => {
   b.disabled = false; b.textContent = label;
 });
 
-$("go").addEventListener("click", () => { KEY = $("key").value.trim(); boot(); });
-$("key").addEventListener("keydown", e => { if(e.key === "Enter") $("go").click(); });
+$("signout").addEventListener("click", async () => {
+  try{ await fetch("/auth/logout", { method:"POST" }); }catch(e){}
+  location.href = "/login.html";
+});
 
 $("send").addEventListener("click", async () => {
   const body = {
@@ -224,6 +227,7 @@ $("send").addEventListener("click", async () => {
   $("send").disabled = true; $("send").textContent = "Sending";
   try{
     const r = await fetch(API+"/admin/leads", { method:"POST", headers: hdr(), body: JSON.stringify(body) });
+    if(r.status === 401) return bounce();
     const d = await r.json();
     if(!r.ok) throw new Error(d.error || "failed");
     $("msg").innerHTML = '<div class="'+(d.delivered ? "ok" : "note warn")+'">'+esc(d.note)+"</div>";
